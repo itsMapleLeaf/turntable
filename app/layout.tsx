@@ -1,5 +1,6 @@
 import { Inter } from "next/font/google"
 import "./globals.css"
+import { ReactQueryProvider } from "./react-query-provider"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -15,7 +16,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className="bg-gray-950 text-gray-100">
-      <body className={inter.className}>{children}</body>
+      <body className={inter.className}>
+        <ReactQueryProvider>{children}</ReactQueryProvider>
+      </body>
     </html>
   )
 }
