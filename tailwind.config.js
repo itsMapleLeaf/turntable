@@ -9,6 +9,7 @@ module.exports = {
       black: colors.black,
       gray: colors.neutral,
       accent: colors.teal,
+      error: colors.red,
       transparent: "transparent",
     },
     extend: {

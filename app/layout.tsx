@@ -20,7 +20,9 @@ export default function RootLayout({
     <html
       lang="en"
       className="text-gray-100 bg-blend-darken"
-      style={{ background: `rgba(0, 0, 0, 0.50) url(${background.src})` }}
+      style={{
+        background: `rgba(0, 0, 0, 0.50) url(${background.src}) center`,
+      }}
     >
       <body className={font.className}>
         <div className="min-h-screen flex flex-col relative isolate">
