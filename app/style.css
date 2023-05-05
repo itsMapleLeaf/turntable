@@ -1,3 +1,20 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer components {
+  .container {
+    @apply mx-auto max-w-screen-lg w-full px-4 md:px-8;
+  }
+
+  .link {
+    @apply transition hover:text-accent-200;
+  }
+
+  .panel {
+    @apply border-white/10 bg-black/50 backdrop-blur shadow-md shadow-black/50;
+  }
+  .panel-interactive {
+    @apply hover:border-accent-700 hover:text-accent-200 transition active:scale-95 active:duration-0;
+  }
+}
