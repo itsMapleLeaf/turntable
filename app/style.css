@@ -17,4 +17,36 @@
   .panel-interactive {
     @apply hover:border-accent-700 hover:text-accent-200 transition active:scale-95 active:duration-0;
   }
+
+  @keyframes fade-in-zoom {
+    from {
+      opacity: 0;
+      transform: scale(0.95);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  @keyframes fade-out-zoom {
+    from {
+      opacity: 1;
+      transform: scale(1);
+    }
+    to {
+      opacity: 0;
+      transform: scale(0.95);
+    }
+  }
+
+  .radix-fade-zoom-transition {
+    transform-origin: var(--radix-popover-content-transform-origin);
+  }
+  .radix-fade-zoom-transition[data-state="open"] {
+    animation: fade-in-zoom theme(transitionDuration.DEFAULT);
+  }
+  .radix-fade-zoom-transition[data-state="closed"] {
+    animation: fade-out-zoom theme(transitionDuration.DEFAULT);
+  }
 }
