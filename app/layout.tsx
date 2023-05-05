@@ -1,8 +1,9 @@
-import { Inter } from "next/font/google"
-import "./globals.css"
+import { Pathway_Extreme } from "next/font/google"
+import background from "./assets/background.webp"
 import { ReactQueryProvider } from "./react-query-provider"
+import "./style.css"
 
-const inter = Inter({ subsets: ["latin"] })
+const font = Pathway_Extreme({ subsets: ["latin"] })
 
 export const metadata = {
   title: "Create Next App",
@@ -16,8 +17,14 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className="bg-gray-950 text-gray-100">
-      <body className={inter.className}>
-        <ReactQueryProvider>{children}</ReactQueryProvider>
+      <body className={font.className}>
+        <div
+          className="fixed inset-0 brightness-[0.2] bg-cover bg-center"
+          style={{ backgroundImage: `url(${background.src})` }}
+        />
+        <ReactQueryProvider>
+          <div className="min-h-screen flex flex-col relative">{children}</div>
+        </ReactQueryProvider>
       </body>
     </html>
   )
