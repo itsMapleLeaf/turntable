@@ -13,6 +13,7 @@ export function AddSongForm() {
         event.preventDefault()
         if (pending) return
         startTransition(async () => {
+          setError(undefined)
           const result = await submitSong(songUrl)
           if (result.error) setError(result.error)
         })
