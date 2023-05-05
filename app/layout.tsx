@@ -1,6 +1,5 @@
 import { Pathway_Extreme } from "next/font/google"
 import background from "./assets/background.webp"
-import { ReactQueryProvider } from "./react-query-provider"
 import "./style.css"
 
 const font = Pathway_Extreme({ subsets: ["latin"] })
@@ -22,9 +21,7 @@ export default function RootLayout({
           className="fixed inset-0 brightness-[0.2] bg-cover bg-center"
           style={{ backgroundImage: `url(${background.src})` }}
         />
-        <ReactQueryProvider>
           <div className="min-h-screen flex flex-col relative">{children}</div>
-        </ReactQueryProvider>
       </body>
     </html>
   )
