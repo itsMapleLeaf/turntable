@@ -1,15 +1,15 @@
-import { ActionArgs, LoaderArgs, json } from "@remix-run/node"
 import {
   Form,
   useActionData,
   useLoaderData,
   useNavigation,
 } from "@remix-run/react"
+import { ActionArgs, LoaderArgs, json, redirect } from "@vercel/remix"
 import { Plus } from "lucide-react"
 import { zfd } from "zod-form-data"
+import { Player } from "~/components/player"
 import { Nullish } from "~/helpers/types"
 import { vinylApi } from "~/vinyl-api.server"
-import { Player } from "./player"
 
 const songs = [
   { id: "1", title: "Song 1", addedBy: "User 1" },
@@ -21,7 +21,13 @@ const songs = [
 ]
 
 export async function loader({ request, params }: LoaderArgs) {
-  const rooms = await vinylApi(request).getRooms()
+  const api = vinylApi(request)
+  const [user, rooms] = await Promise.all([api.getUser(), api.getRooms()])
+
+  if (!user.data) {
+    return redirect(`/sign-in?redirect=${request.url}`)
+  }
+
   if (!rooms.data) {
     return json({ room: { error: rooms.error } }, 400)
   }
