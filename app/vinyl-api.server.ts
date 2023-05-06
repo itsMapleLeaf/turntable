@@ -13,18 +13,18 @@ type BaseFetchArgs<T> =
       request: Request
       method: "GET"
       path: string
-      schema: z.Schema<T>
+      schema?: z.Schema<T>
       body?: never
     }
   | {
       request: Request
       method: "POST" | "PATCH" | "PUT" | "DELETE"
       path: string
-      schema: z.Schema<T>
+      schema?: z.Schema<T>
       body: Json
     }
 
-type Result<T> =
+export type VinylApiResult<T> =
   | { data: T; error?: undefined }
   | { data?: undefined; error: string }
 
@@ -34,7 +34,7 @@ export async function vinylFetch<T>({
   path,
   schema,
   body,
-}: BaseFetchArgs<T>): Promise<Result<T>> {
+}: BaseFetchArgs<T>): Promise<VinylApiResult<T>> {
   const url = new URL(path, apiUrl)
 
   try {
@@ -54,23 +54,20 @@ export async function vinylFetch<T>({
     })
 
     if (!response.ok) {
+      console.log(response)
+      const error = await response.text().catch(() => undefined)
       return {
-        error: await response.text().catch(() => "Unknown error"),
+        error: error || `API error: ${response.status} ${response.statusText}`,
       }
     }
 
     const json = await response.json()
-    return { data: schema.parse(json) }
+    return { data: schema ? schema.parse(json) : json }
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error)
     return { error: `${method} ${url.pathname} failed  (${errorMessage})` }
   }
 }
-
-const roomSchema = z.object({
-  id: z.string(),
-  name: z.string(),
-})
 
 const authResponseSchema = z.object({
   token: z.string(),
@@ -80,6 +77,13 @@ const userSchema = z.object({
   id: z.string(),
   username: z.string(),
   display_name: z.string(),
+})
+export type User = z.infer<typeof userSchema>
+
+const roomSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  connections: z.array(userSchema),
 })
 
 export function vinylApi(request: Request) {
@@ -119,6 +123,24 @@ export function vinylApi(request: Request) {
         method: "GET",
         path: "rooms",
         schema: z.array(roomSchema),
+      })
+    },
+
+    getRoom(roomId: string) {
+      return vinylFetch({
+        request,
+        method: "GET",
+        path: `rooms/${roomId}`,
+        schema: roomSchema,
+      })
+    },
+
+    submitSong(roomId: string, url: string) {
+      return vinylFetch({
+        request,
+        method: "POST",
+        path: `audio/input`,
+        body: { url },
       })
     },
   }

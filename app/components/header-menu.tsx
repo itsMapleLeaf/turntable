@@ -1,7 +1,6 @@
-"use client"
 import * as Popover from "@radix-ui/react-popover"
+import { Link } from "@remix-run/react"
 import { ListPlus, Menu } from "lucide-react"
-import Link from "next/link"
 
 export function HeaderMenu() {
   return (
@@ -18,7 +17,7 @@ export function HeaderMenu() {
         >
           <Popover.Close asChild>
             <Link
-              href="/rooms/new"
+              to="/rooms/new"
               className="link py-2 px-3 flex flex-row items-center gap-2"
             >
               <ListPlus aria-hidden className="w-6 h-6" /> New Room

@@ -1,4 +1,4 @@
-import { useActionData } from "@remix-run/react"
+import { Link, useActionData } from "@remix-run/react"
 import { ActionArgs, json, redirect } from "@vercel/remix"
 import { zfd } from "zod-form-data"
 import { AuthForm } from "~/components/auth-form"
@@ -34,6 +34,14 @@ export default function SignUpPage() {
       submitText="Sign up"
       submitTextPending="Signing up..."
       error={errorData?.error}
+      footer={
+        <p>
+          Already have an account?{" "}
+          <Link to="/sign-in" className="link underline">
+            Sign In
+          </Link>
+        </p>
+      }
     />
   )
 }
