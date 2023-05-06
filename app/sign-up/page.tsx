@@ -1,27 +1,43 @@
-import { UserPlus } from "lucide-react"
+import { cookies } from "next/headers"
 import Link from "next/link"
+import { redirect } from "next/navigation"
+import { AuthForm } from "../auth-form"
+import { vinylApi } from "../vinyl-api"
 
-export default function SignUp() {
+async function signUp(form: FormData) {
+  "use server"
+  const result = await vinylApi().register(
+    form.get("username") as string,
+    form.get("password") as string,
+  )
+
+  if (result.data) {
+    // @ts-expect-error
+    cookies().set("vinyl_token", result.data.token)
+    redirect(`/`)
+  }
+
+  return result
+}
+
+export default async function SignUp() {
+  const user = await vinylApi(cookies().get("vinyl_token")?.value).getUser()
+  if (user.data) redirect("/")
+
   return (
-    <form className="panel container max-w-sm flex flex-col p-4 gap-4 border mt-4 items-center">
-      <h1 className="text-3xl font-light">Sign Up</h1>
-      <label className="w-full">
-        <div className="text-sm font-medium leading-none mb-1">Username</div>
-        <input type="text" placeholder="awesomeuser" className="input" />
-      </label>
-      <label className="w-full">
-        <div className="text-sm font-medium leading-none mb-1">Password</div>
-        <input type="password" placeholder="•••••••" className="input" />
-      </label>
-      <button className="button">
-        <UserPlus className="w-5 h-5" aria-hidden /> Sign Up
-      </button>
-      <p>
-        Already have an account?{" "}
-        <Link href="/sign-in" className="link underline">
-          Sign In
-        </Link>
-      </p>
-    </form>
+    <AuthForm
+      title="Sign Up"
+      buttonText="Sign Up"
+      buttonTextPending="Signing Up..."
+      submit={signUp}
+      footer={
+        <p className="text-center">
+          Already have an account?{" "}
+          <Link href="/sign-in" className="link underline">
+            Sign In
+          </Link>
+        </p>
+      }
+    />
   )
 }
