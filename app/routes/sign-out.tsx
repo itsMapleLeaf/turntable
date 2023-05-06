@@ -1,4 +1,4 @@
-import { redirect } from "@remix-run/node"
+import { redirect } from "@vercel/remix"
 import { vinylTokenCookie } from "~/vinyl-token-cookie"
 
 export async function loader() {

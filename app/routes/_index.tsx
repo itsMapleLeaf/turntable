@@ -6,7 +6,9 @@ import { vinylApi } from "~/vinyl-api.server"
 export async function loader({ request }: LoaderArgs) {
   const api = vinylApi(request)
   const [user, rooms] = await Promise.all([api.getUser(), api.getRooms()])
-  return user.data ? json({ rooms }) : redirect("/sign-in")
+  return user.data
+    ? json({ rooms })
+    : redirect(`/sign-in?redirect=${request.url}`)
 }
 
 export default function RoomListPage() {

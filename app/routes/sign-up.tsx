@@ -1,4 +1,4 @@
-import { Link, useActionData } from "@remix-run/react"
+import { Link, useActionData, useSearchParams } from "@remix-run/react"
 import { ActionArgs, json, redirect } from "@vercel/remix"
 import { zfd } from "zod-form-data"
 import { AuthForm } from "~/components/auth-form"
@@ -28,6 +28,7 @@ export async function action({ request }: ActionArgs) {
 
 export default function SignUpPage() {
   const errorData = useActionData<typeof action>()
+  const [searchParams] = useSearchParams()
   return (
     <AuthForm
       title="Sign Up"
@@ -37,7 +38,10 @@ export default function SignUpPage() {
       footer={
         <p>
           Already have an account?{" "}
-          <Link to="/sign-in" className="link underline">
+          <Link
+            to={`/sign-in?redirect=${searchParams.get("redirect") || "/"}`}
+            className="link underline"
+          >
             Sign In
           </Link>
         </p>

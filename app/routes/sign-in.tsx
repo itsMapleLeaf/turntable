@@ -1,4 +1,4 @@
-import { Link, useActionData } from "@remix-run/react"
+import { Link, useActionData, useSearchParams } from "@remix-run/react"
 import { ActionArgs, json, redirect } from "@vercel/remix"
 import { zfd } from "zod-form-data"
 import { AuthForm } from "~/components/auth-form"
@@ -19,7 +19,8 @@ export async function action({ request }: ActionArgs) {
     return json({ error: response.error }, 400)
   }
 
-  return redirect("/", {
+  const destination = new URL(request.url).searchParams.get("redirect")
+  return redirect(destination || "/", {
     headers: {
       "Set-Cookie": await vinylTokenCookie.serialize(response.data.token),
     },
@@ -28,6 +29,7 @@ export async function action({ request }: ActionArgs) {
 
 export default function SignInPage() {
   const errorData = useActionData<typeof action>()
+  const [searchParams] = useSearchParams()
   return (
     <AuthForm
       title="Sign In"
@@ -37,7 +39,10 @@ export default function SignInPage() {
       footer={
         <p>
           Don&apos;t have an account?{" "}
-          <Link to="/sign-up" className="link underline">
+          <Link
+            to={`/sign-up?redirect=${searchParams.get("redirect") || "/"}`}
+            className="link underline"
+          >
             Sign Up
           </Link>
         </p>
