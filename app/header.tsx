@@ -1,4 +1,4 @@
-import { Disc } from "lucide-react"
+import { Disc, UserPlus } from "lucide-react"
 import Link from "next/link"
 import { HeaderMenu } from "./header-menu"
 
@@ -16,15 +16,9 @@ export function Header() {
         </Link>
 
         <div className="flex-1 flex flex-row justify-end">
-          <button className="rounded-full border-2 border-transparent hover:border-accent-700 transition">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src="https://cdn.discordapp.com/avatars/91634403746275328/8f99339380cdefe185e99f7756d1b6c6.webp"
-              alt=""
-              className="w-8 h-8 rounded-full"
-            />
-            <span className="sr-only">Account</span>
-          </button>
+          <Link href="/sign-up" className="button">
+            <UserPlus className="w-5 h-5" aria-hidden /> Sign up
+          </Link>
         </div>
       </nav>
     </header>

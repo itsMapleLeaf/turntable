@@ -2,7 +2,21 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer base {
+  :focus {
+    outline: none;
+  }
+
+  :focus-visible {
+    @apply ring-2 ring-accent-700;
+  }
+}
+
 @layer components {
+  .active-press {
+    @apply transition active:scale-95 active:duration-0;
+  }
+
   .container {
     @apply mx-auto max-w-screen-lg w-full px-4 md:px-8;
   }
@@ -11,11 +25,22 @@
     @apply transition hover:text-accent-200;
   }
 
+  .button {
+    @apply link flex flex-row gap-2 items-center p-3 border border-white/10 rounded-md leading-none hover:border-accent-700 active-press;
+  }
+  .button > svg {
+    @apply w-5 h-5;
+  }
+
+  .input {
+    @apply bg-transparent/50 flex-1 px-3 py-2 border border-white/10 min-w-0 transition w-full rounded-md shadow-inner shadow-black/50;
+  }
+
   .panel {
     @apply border-white/10 bg-black/50 backdrop-blur shadow-md shadow-black/50;
   }
   .panel-interactive {
-    @apply hover:border-accent-700 hover:text-accent-200 transition active:scale-95 active:duration-0;
+    @apply hover:border-accent-700 hover:text-accent-200 active-press;
   }
 
   @keyframes fade-in-zoom {
