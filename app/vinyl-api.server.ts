@@ -54,7 +54,6 @@ export async function vinylFetch<T>({
     })
 
     if (!response.ok) {
-      console.log(response)
       const error = await response.text().catch(() => undefined)
       return {
         error: error || `API error: ${response.status} ${response.statusText}`,
