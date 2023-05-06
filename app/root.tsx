@@ -48,9 +48,11 @@ export default function Root() {
           rel="stylesheet"
         ></link>
       </head>
-      <body className="min-h-screen flex flex-col relative isolate">
-        <Header user={user} />
-        <Outlet />
+      <body>
+        <div className="min-h-screen flex flex-col relative isolate">
+          <Header user={user} />
+          <Outlet />
+        </div>
         <Scripts />
         <LiveReload />
       </body>
