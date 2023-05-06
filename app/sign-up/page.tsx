@@ -2,7 +2,7 @@ import { cookies } from "next/headers"
 import Link from "next/link"
 import { redirect } from "next/navigation"
 import { AuthForm } from "../auth-form"
-import { vinylApi } from "../vinyl-api"
+import { vinylApi } from "../vinyl-api.server"
 
 async function signUp(form: FormData) {
   "use server"

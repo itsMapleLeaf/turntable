@@ -2,7 +2,7 @@ import { Disc, UserPlus } from "lucide-react"
 import { cookies } from "next/headers"
 import Link from "next/link"
 import { HeaderMenu } from "./header-menu"
-import { vinylApi } from "./vinyl-api"
+import { vinylApi } from "./vinyl-api.server"
 
 export async function Header() {
   const user = await vinylApi(cookies().get("vinyl_token")?.value).getUser()
