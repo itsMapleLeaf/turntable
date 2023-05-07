@@ -1,5 +1,5 @@
 import { useActionData } from "@remix-run/react"
-import { ActionArgs, LoaderArgs, json, redirect } from "@vercel/remix"
+import { json, redirect, type ActionArgs, type LoaderArgs } from "@vercel/remix"
 import { FormLayout } from "~/components/form-layout"
 import { vinylApi } from "~/vinyl-api.server"
 
@@ -39,7 +39,7 @@ export default function CreateRoomPage() {
       error={error}
     >
       <label className="w-full">
-        <div className="text-sm font-medium leading-none mb-1">Room name</div>
+        <div className="mb-1 text-sm font-medium leading-none">Room name</div>
         <input
           name="name"
           type="text"

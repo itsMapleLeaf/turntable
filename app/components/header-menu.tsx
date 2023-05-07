@@ -6,30 +6,30 @@ export function HeaderMenu({ loggedIn }: { loggedIn: boolean }) {
   return (
     <Popover.Root>
       <Popover.Trigger className="link p-1">
-        <Menu aria-hidden className="w-6 h-6" />
+        <Menu aria-hidden className="h-6 w-6" />
         <span className="sr-only">Menu</span>
       </Popover.Trigger>
       <Popover.Portal>
         <Popover.Content
-          className="panel border radix-fade-zoom-transition duration-100 flex flex-col"
+          className="panel radix-fade-zoom-transition flex flex-col border duration-100"
           align="end"
           sideOffset={8}
         >
           <Popover.Close asChild>
             <Link
               to="/rooms/new"
-              className="link py-2 px-3 flex flex-row items-center gap-2"
+              className="link flex flex-row items-center gap-2 px-3 py-2"
             >
-              <ListPlus aria-hidden className="w-5 h-5" /> New Room
+              <ListPlus aria-hidden className="h-5 w-5" /> New Room
             </Link>
           </Popover.Close>
           {loggedIn ? (
             <Popover.Close asChild>
               <Link
                 to="/sign-out"
-                className="link py-2 px-3 flex flex-row items-center gap-2"
+                className="link flex flex-row items-center gap-2 px-3 py-2"
               >
-                <LogOut aria-hidden className="w-5 h-5" /> Sign Out
+                <LogOut aria-hidden className="h-5 w-5" /> Sign Out
               </Link>
             </Popover.Close>
           ) : (
@@ -37,17 +37,17 @@ export function HeaderMenu({ loggedIn }: { loggedIn: boolean }) {
               <Popover.Close asChild>
                 <Link
                   to="/sign-in"
-                  className="link py-2 px-3 flex flex-row items-center gap-2"
+                  className="link flex flex-row items-center gap-2 px-3 py-2"
                 >
-                  <LogIn aria-hidden className="w-5 h-5" /> Sign In
+                  <LogIn aria-hidden className="h-5 w-5" /> Sign In
                 </Link>
               </Popover.Close>
               <Popover.Close asChild>
                 <Link
                   to="/sign-up"
-                  className="link py-2 px-3 flex flex-row items-center gap-2"
+                  className="link flex flex-row items-center gap-2 px-3 py-2"
                 >
-                  <UserPlus aria-hidden className="w-5 h-5" /> Sign Up
+                  <UserPlus aria-hidden className="h-5 w-5" /> Sign Up
                 </Link>
               </Popover.Close>
             </>

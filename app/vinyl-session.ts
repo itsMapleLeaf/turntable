@@ -14,9 +14,9 @@ export function destroySession() {
 }
 
 export async function getSessionToken(request: Request) {
-  const result = await vinylTokenCookie.parse(
+  const result = (await vinylTokenCookie.parse(
     request.headers.get("Cookie") ?? "",
-  )
+  )) as unknown
   if (result == null) return null
 
   if (typeof result !== "string") {

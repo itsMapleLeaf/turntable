@@ -4,11 +4,12 @@ import {
   useLoaderData,
   useNavigation,
 } from "@remix-run/react"
-import { ActionArgs, LoaderArgs, json, redirect } from "@vercel/remix"
+import { json, redirect, type ActionArgs, type LoaderArgs } from "@vercel/remix"
 import { PlayCircle, Plus } from "lucide-react"
 import { useEffect, useState } from "react"
 import { zfd } from "zod-form-data"
-import { Room, vinylApi } from "~/vinyl-api.server"
+import { raise } from "~/helpers/raise"
+import { vinylApi, type Room } from "~/vinyl-api.server"
 
 const songs = [
   { id: "1", title: "Song 1", addedBy: "User 1" },
@@ -24,7 +25,7 @@ export async function loader({ request, params }: LoaderArgs) {
 
   const [user, room] = await Promise.all([
     api.getUser(),
-    api.getRoom(params.roomId!),
+    api.getRoom(params.roomId ?? raise("roomId not defined")),
   ])
 
   if (!user.data) {
@@ -36,7 +37,10 @@ export async function loader({ request, params }: LoaderArgs) {
 
 export async function action({ request, params }: ActionArgs) {
   const body = zfd.formData({ url: zfd.text() }).parse(await request.formData())
-  const result = await vinylApi(request).submitSong(params.roomId!, body.url)
+  const result = await vinylApi(request).submitSong(
+    params.roomId ?? raise("roomId not defined"),
+    body.url,
+  )
   return json({ error: result.error })
 }
 
@@ -85,8 +89,8 @@ function RoomPageContent({ room }: { room: Room }) {
 
   return (
     <>
-      <div className="container py-4 flex-1">
-        <main className="panel border flex flex-col gap-4 p-4">
+      <div className="container flex-1 py-4">
+        <main className="panel flex flex-col gap-4 border p-4">
           <h1 className="text-2xl font-light">{room.name}</h1>
           <hr className="-mx-4 border-white/10" />
           <AddSongForm />
@@ -94,7 +98,7 @@ function RoomPageContent({ room }: { room: Room }) {
           <ul className="flex flex-col gap-4">
             {songs.map((song) => (
               <li key={song.id} className="flex flex-row gap-3">
-                <div className="w-12 h-12 bg-accent-400" />
+                <div className="h-12 w-12 bg-accent-400" />
                 <div className="flex-1 leading-5">
                   <h2 className="text-lg font-light">{song.title}</h2>
                   <p className="text-sm text-gray-400">
@@ -107,7 +111,7 @@ function RoomPageContent({ room }: { room: Room }) {
         </main>
       </div>
 
-      <footer className="panel border-t p-4 sticky bottom-0">
+      <footer className="panel sticky bottom-0 border-t p-4">
         <div className="container flex items-center">
           {playing ? (
             <input
@@ -120,11 +124,11 @@ function RoomPageContent({ room }: { room: Room }) {
             />
           ) : (
             <button onClick={() => setPlaying(true)}>
-              <PlayCircle aria-hidden className="w-8 h-8" />
+              <PlayCircle aria-hidden className="h-8 w-8" />
               <span className="sr-only">Play</span>
             </button>
           )}
-          <p className="leading-5 flex-1 flex flex-row justify-end">
+          <p className="flex flex-1 flex-row justify-end leading-5">
             <span className="text-sm opacity-75">Now playing</span>
             <br />
             Something
@@ -145,17 +149,17 @@ function AddSongForm() {
         <input
           name="url"
           placeholder="Stream URL"
-          className="bg-transparent/50 flex-1 px-3 py-2 border border-white/10 min-w-0"
+          className="min-w-0 flex-1 border border-white/10 bg-transparent/50 px-3 py-2"
         />
         <button
           data-pending={pending || undefined}
-          className="flex items-center gap-2 p-2 border border-white/10 data-[pending]:opacity-50"
+          className="flex items-center gap-2 border border-white/10 p-2 data-[pending]:opacity-50"
         >
           {pending ? "Submitting..." : <Plus />}
         </button>
       </div>
       {!pending && error ? (
-        <p className="text-error-400 text-sm">{error}</p>
+        <p className="text-sm text-error-400">{error}</p>
       ) : null}
     </Form>
   )

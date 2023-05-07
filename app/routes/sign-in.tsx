@@ -1,5 +1,5 @@
 import { Link, useActionData, useSearchParams } from "@remix-run/react"
-import { ActionArgs, json, redirect } from "@vercel/remix"
+import { json, redirect, type ActionArgs } from "@vercel/remix"
 import { zfd } from "zod-form-data"
 import { AuthForm } from "~/components/auth-form"
 import { vinylApi } from "~/vinyl-api.server"

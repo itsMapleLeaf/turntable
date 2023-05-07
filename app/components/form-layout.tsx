@@ -1,6 +1,6 @@
 import { Form } from "@remix-run/react"
 import { Wand2 } from "lucide-react"
-import { Nullish } from "~/helpers/types"
+import { type Nullish } from "~/helpers/types"
 import { usePendingSubmit } from "~/helpers/use-pending-submit"
 
 export type FormLayoutProps = {
@@ -23,7 +23,7 @@ export function FormLayout({
     <main className="container py-4">
       <Form
         method="POST"
-        className="panel container max-w-sm flex flex-col p-4 gap-4 border mt-4 items-center"
+        className="panel container mt-4 flex max-w-sm flex-col items-center gap-4 border p-4"
       >
         <h1 className="text-3xl font-light">{title}</h1>
         {children}

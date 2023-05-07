@@ -33,7 +33,7 @@ export default function Root() {
       <head>
         <Links />
         <Meta />
-        <meta charSet="UTF-8" />
+        <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>Turntable</title>
 
@@ -49,7 +49,7 @@ export default function Root() {
         ></link>
       </head>
       <body>
-        <div className="min-h-screen flex flex-col relative isolate">
+        <div className="relative isolate flex min-h-screen flex-col">
           <Header user={user} />
           <Outlet />
         </div>

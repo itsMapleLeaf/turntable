@@ -13,14 +13,14 @@ type BaseFetchArgs<T> =
       request: Request
       method: "GET"
       path: string
-      schema?: z.Schema<T>
+      schema: z.Schema<T>
       body?: never
     }
   | {
       request: Request
       method: "POST" | "PATCH" | "PUT" | "DELETE"
       path: string
-      schema?: z.Schema<T>
+      schema: z.Schema<T>
       body: Json
     }
 
@@ -60,8 +60,8 @@ export async function vinylFetch<T>({
       }
     }
 
-    const json = await response.json()
-    return { data: schema ? schema.parse(json) : json }
+    const json = (await response.json()) as unknown
+    return { data: schema.parse(json) }
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error)
     return { error: `${method} ${url.pathname} failed  (${errorMessage})` }
@@ -157,12 +157,12 @@ export function vinylApi(request: Request) {
       return { data: room }
     },
 
-    async getRoomStream(roomId: string) {
+    async getRoomStream(roomId: string, token: string) {
       return fetch(
         new URL(`rooms/${roomId.replace(/^room:/, "")}/stream`, apiUrl),
         {
           headers: {
-            Authorization: `Bearer ${await getSessionToken(request)}`,
+            Authorization: `Bearer ${token}`,
           },
         },
       )
