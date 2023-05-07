@@ -115,7 +115,6 @@ function RoomPageContent({ room }: { room: Room }) {
               className="flex-1"
               min={0}
               max={1}
-              step={0.05}
               value={volume}
               onChange={(event) => setVolume(event.currentTarget.valueAsNumber)}
             />
