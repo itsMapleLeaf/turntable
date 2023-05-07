@@ -1,6 +1,6 @@
 import { Form } from "@remix-run/react"
 import { LogIn } from "lucide-react"
-import { useNavigationPending } from "~/helpers/use-navigation-pending"
+import { usePendingSubmit } from "~/helpers/use-pending-submit"
 
 export function AuthForm(props: {
   title: string
@@ -9,7 +9,7 @@ export function AuthForm(props: {
   footer: React.ReactNode
   error: string | undefined
 }) {
-  const pending = useNavigationPending()
+  const pending = usePendingSubmit()
   return (
     <Form
       method="POST"

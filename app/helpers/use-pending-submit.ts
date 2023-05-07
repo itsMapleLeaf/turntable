@@ -1,6 +1,6 @@
 import { useNavigation } from "@remix-run/react"
 
-export function useNavigationPending() {
+export function usePendingSubmit() {
   const navigation = useNavigation()
   return (
     navigation.state === "submitting" ||
