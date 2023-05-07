@@ -1,12 +1,10 @@
 import { redirect } from "@vercel/remix"
-import { vinylTokenCookie } from "~/vinyl-token-cookie"
+import { destroySession } from "~/vinyl-session"
 
 export async function loader() {
   return redirect("/sign-in", {
     headers: {
-      "Set-Cookie": await vinylTokenCookie.serialize("", {
-        expires: new Date(0),
-      }),
+      "Set-Cookie": await destroySession(),
     },
   })
 }

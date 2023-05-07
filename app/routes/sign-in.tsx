@@ -3,7 +3,7 @@ import { ActionArgs, json, redirect } from "@vercel/remix"
 import { zfd } from "zod-form-data"
 import { AuthForm } from "~/components/auth-form"
 import { vinylApi } from "~/vinyl-api.server"
-import { vinylTokenCookie } from "~/vinyl-token-cookie"
+import { createSession } from "~/vinyl-session"
 
 export async function action({ request }: ActionArgs) {
   const form = zfd
@@ -22,7 +22,7 @@ export async function action({ request }: ActionArgs) {
   const destination = new URL(request.url).searchParams.get("redirect")
   return redirect(destination || "/", {
     headers: {
-      "Set-Cookie": await vinylTokenCookie.serialize(response.data.token),
+      "Set-Cookie": await createSession(response.data.token),
     },
   })
 }

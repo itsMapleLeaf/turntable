@@ -1,5 +1,5 @@
 import { z } from "zod"
-import { vinylTokenCookie } from "./vinyl-token-cookie"
+import { getSessionToken } from "./vinyl-session"
 
 const apiUrl = new URL(
   "/v1/",
@@ -42,7 +42,7 @@ export async function vinylFetch<T>({
       "Content-Type": "application/json",
     }
 
-    const token = await vinylTokenCookie.parse(request.headers.get("Cookie"))
+    const token = await getSessionToken(request)
     if (typeof token === "string") {
       headers.Authorization = `Bearer ${token}`
     }
