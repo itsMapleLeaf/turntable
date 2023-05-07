@@ -84,6 +84,7 @@ const roomSchema = z.object({
   name: z.string(),
   connections: z.array(userSchema),
 })
+export type Room = z.infer<typeof roomSchema>
 
 export function vinylApi(request: Request) {
   return {
@@ -117,24 +118,6 @@ export function vinylApi(request: Request) {
       })
     },
 
-    getRooms() {
-      return vinylFetch({
-        request,
-        method: "GET",
-        path: "rooms",
-        schema: z.array(roomSchema),
-      })
-    },
-
-    getRoom(roomId: string) {
-      return vinylFetch({
-        request,
-        method: "GET",
-        path: `rooms/${roomId}`,
-        schema: roomSchema,
-      })
-    },
-
     createRoom(name: string) {
       return vinylFetch({
         request,
@@ -145,13 +128,80 @@ export function vinylApi(request: Request) {
       })
     },
 
-    submitSong(roomId: string, url: string) {
+    getRooms() {
       return vinylFetch({
         request,
-        method: "POST",
-        path: `audio/input`,
-        body: { url },
+        method: "GET",
+        path: "rooms",
+        schema: z.array(roomSchema),
       })
+    },
+
+    async getRoom(roomId: string): Promise<VinylApiResult<Room>> {
+      const rooms = await vinylFetch({
+        request,
+        method: "GET",
+        path: "rooms",
+        schema: z.array(roomSchema),
+      })
+
+      if (!rooms.data) {
+        return rooms
+      }
+
+      const room = rooms.data.find((r) => r.id === roomId)
+      if (!room) {
+        return { error: "Room not found" }
+      }
+
+      return { data: room }
+    },
+
+    async getRoomStream(roomId: string) {
+      return fetch(
+        new URL(`rooms/${roomId.replace(/^room:/, "")}/stream`, apiUrl),
+        {
+          headers: {
+            Authorization: `Bearer ${await getSessionToken(request)}`,
+          },
+        },
+      )
+    },
+
+    async submitSong(
+      roomId: string,
+      url: string,
+    ): Promise<VinylApiResult<null>> {
+      try {
+        const headers: Record<string, string> = {
+          "Content-Type": "text/plain",
+        }
+
+        const token = await getSessionToken(request)
+        if (typeof token === "string") {
+          headers.Authorization = `Bearer ${token}`
+        }
+
+        const response = await fetch(new URL("audio/input", apiUrl), {
+          method: "POST",
+          headers,
+          body: url,
+        })
+
+        if (!response.ok) {
+          const error = await response.text().catch(() => undefined)
+          return {
+            error:
+              error || `API error: ${response.status} ${response.statusText}`,
+          }
+        }
+
+        return { data: null }
+      } catch (error) {
+        const errorMessage =
+          error instanceof Error ? error.message : String(error)
+        return { error: `Failed to submit song (${errorMessage})` }
+      }
     },
   }
 }

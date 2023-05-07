@@ -5,9 +5,9 @@ import {
   useNavigation,
 } from "@remix-run/react"
 import { ActionArgs, LoaderArgs, json, redirect } from "@vercel/remix"
-import { Plus } from "lucide-react"
+import { PlayCircle, Plus } from "lucide-react"
+import { useEffect, useState } from "react"
 import { zfd } from "zod-form-data"
-import { Player } from "~/components/player"
 import { Nullish } from "~/helpers/types"
 import { vinylApi } from "~/vinyl-api.server"
 
@@ -22,22 +22,17 @@ const songs = [
 
 export async function loader({ request, params }: LoaderArgs) {
   const api = vinylApi(request)
-  const [user, rooms] = await Promise.all([api.getUser(), api.getRooms()])
+
+  const [user, room] = await Promise.all([
+    api.getUser(),
+    api.getRoom(params.roomId!),
+  ])
 
   if (!user.data) {
     return redirect(`/sign-in?redirect=${request.url}`)
   }
 
-  if (!rooms.data) {
-    return json({ room: { error: rooms.error } }, 400)
-  }
-
-  const room = rooms.data.find((r) => r.id === params.roomId)
-  if (!room) {
-    return json({ room: { error: "Room not found" } }, 404)
-  }
-
-  return json({ room: { data: room } })
+  return json({ room })
 }
 
 export async function action({ request, params }: ActionArgs) {
@@ -77,7 +72,7 @@ export default function RoomPage() {
           </ul>
         </main>
       </div>
-      <Player />
+      <Player roomId={room.data.id} />
     </>
   )
 }
@@ -104,5 +99,47 @@ function AddSongForm({ error }: { error: Nullish<string> }) {
         <p className="text-error-400 text-sm">{error}</p>
       ) : null}
     </Form>
+  )
+}
+
+function Player({ roomId }: { roomId: string }) {
+  const [playing, setPlaying] = useState(false)
+
+  useEffect(() => {
+    if (playing) {
+      const audio = new Audio(`/rooms/${roomId}/stream`)
+      audio.play().catch((error) => {
+        console.error("Failed to play audio:", error)
+        setPlaying(false)
+      })
+
+      audio.addEventListener("ended", () => {
+        setPlaying(false)
+      })
+    }
+  }, [playing, roomId])
+
+  useEffect(() => {
+    setPlaying(true)
+  }, [roomId])
+
+  return (
+    <footer className="panel border-t p-4 sticky bottom-0">
+      <div className="container flex items-center">
+        <p className="leading-5 flex-1">
+          <span className="text-sm opacity-75">Now playing</span>
+          <br />
+          Something
+        </p>
+        {playing ? (
+          <p>Playing</p>
+        ) : (
+          <button onClick={() => setPlaying(true)}>
+            <PlayCircle aria-hidden className="w-8 h-8" />
+            <span className="sr-only">Play</span>
+          </button>
+        )}
+      </div>
+    </footer>
   )
 }
