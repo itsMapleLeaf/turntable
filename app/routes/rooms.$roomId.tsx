@@ -8,8 +8,7 @@ import { ActionArgs, LoaderArgs, json, redirect } from "@vercel/remix"
 import { PlayCircle, Plus } from "lucide-react"
 import { useEffect, useState } from "react"
 import { zfd } from "zod-form-data"
-import { Nullish } from "~/helpers/types"
-import { vinylApi } from "~/vinyl-api.server"
+import { Room, vinylApi } from "~/vinyl-api.server"
 
 const songs = [
   { id: "1", title: "Song 1", addedBy: "User 1" },
@@ -43,19 +42,54 @@ export async function action({ request, params }: ActionArgs) {
 
 export default function RoomPage() {
   const { room } = useLoaderData<typeof loader>()
-  const { error } = useActionData<typeof action>() ?? {}
-
   if ("error" in room) {
     return <p>Failed to load room: {room.error}</p>
   }
+  return <RoomPageContent room={room.data} />
+}
+
+function RoomPageContent({ room }: { room: Room }) {
+  const [playing, setPlaying] = useState(false)
+  const [audio, setAudio] = useState<HTMLAudioElement>()
+  const [volume, setVolume] = useState(0.5)
+
+  useEffect(() => {
+    if (playing) {
+      const audio = new Audio(`/rooms/${room.id}/stream`)
+
+      audio
+        .play()
+        .then(() => setAudio(audio))
+        .catch((error) => {
+          console.error("Failed to play audio:", error)
+          setPlaying(false)
+        })
+
+      audio.addEventListener("ended", () => {
+        setPlaying(false)
+      })
+    } else {
+      setAudio(undefined)
+    }
+  }, [playing, room.id])
+
+  useEffect(() => {
+    setPlaying(true)
+  }, [room.id])
+
+  useEffect(() => {
+    if (audio) {
+      audio.volume = volume ** 2
+    }
+  }, [audio, volume])
 
   return (
     <>
       <div className="container py-4 flex-1">
         <main className="panel border flex flex-col gap-4 p-4">
-          <h1 className="text-2xl font-light">{room.data.name}</h1>
+          <h1 className="text-2xl font-light">{room.name}</h1>
           <hr className="-mx-4 border-white/10" />
-          <AddSongForm error={error} />
+          <AddSongForm />
           <hr className="-mx-4 border-white/10" />
           <ul className="flex flex-col gap-4">
             {songs.map((song) => (
@@ -72,12 +106,38 @@ export default function RoomPage() {
           </ul>
         </main>
       </div>
-      <Player roomId={room.data.id} />
+
+      <footer className="panel border-t p-4 sticky bottom-0">
+        <div className="container flex items-center">
+          {playing ? (
+            <input
+              type="range"
+              className="flex-1"
+              min={0}
+              max={1}
+              step={0.05}
+              value={volume}
+              onChange={(event) => setVolume(event.currentTarget.valueAsNumber)}
+            />
+          ) : (
+            <button onClick={() => setPlaying(true)}>
+              <PlayCircle aria-hidden className="w-8 h-8" />
+              <span className="sr-only">Play</span>
+            </button>
+          )}
+          <p className="leading-5 flex-1 flex flex-row justify-end">
+            <span className="text-sm opacity-75">Now playing</span>
+            <br />
+            Something
+          </p>
+        </div>
+      </footer>
     </>
   )
 }
 
-function AddSongForm({ error }: { error: Nullish<string> }) {
+function AddSongForm() {
+  const { error } = useActionData<typeof action>() ?? {}
   const navigation = useNavigation()
   const pending = navigation.state === "submitting"
   return (
@@ -99,47 +159,5 @@ function AddSongForm({ error }: { error: Nullish<string> }) {
         <p className="text-error-400 text-sm">{error}</p>
       ) : null}
     </Form>
-  )
-}
-
-function Player({ roomId }: { roomId: string }) {
-  const [playing, setPlaying] = useState(false)
-
-  useEffect(() => {
-    if (playing) {
-      const audio = new Audio(`/rooms/${roomId}/stream`)
-      audio.play().catch((error) => {
-        console.error("Failed to play audio:", error)
-        setPlaying(false)
-      })
-
-      audio.addEventListener("ended", () => {
-        setPlaying(false)
-      })
-    }
-  }, [playing, roomId])
-
-  useEffect(() => {
-    setPlaying(true)
-  }, [roomId])
-
-  return (
-    <footer className="panel border-t p-4 sticky bottom-0">
-      <div className="container flex items-center">
-        <p className="leading-5 flex-1">
-          <span className="text-sm opacity-75">Now playing</span>
-          <br />
-          Something
-        </p>
-        {playing ? (
-          <p>Playing</p>
-        ) : (
-          <button onClick={() => setPlaying(true)}>
-            <PlayCircle aria-hidden className="w-8 h-8" />
-            <span className="sr-only">Play</span>
-          </button>
-        )}
-      </div>
-    </footer>
   )
 }
