@@ -107,6 +107,7 @@ export function vinylApi(request: Request) {
       })
     },
 
+    // todo: namespace these?
     getUser() {
       return vinylFetch({
         request,
@@ -130,6 +131,16 @@ export function vinylApi(request: Request) {
         request,
         method: "GET",
         path: `rooms/${roomId}`,
+        schema: roomSchema,
+      })
+    },
+
+    createRoom(name: string) {
+      return vinylFetch({
+        request,
+        method: "POST",
+        path: "rooms",
+        body: { name },
         schema: roomSchema,
       })
     },
