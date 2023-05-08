@@ -2,8 +2,8 @@ import { Link, useActionData, useSearchParams } from "@remix-run/react"
 import { json, redirect, type ActionArgs } from "@vercel/remix"
 import { zfd } from "zod-form-data"
 import { AuthForm } from "~/components/auth-form"
-import { vinylApi } from "~/vinyl-api.server"
-import { createSession } from "~/vinyl-session"
+import { vinylApi } from "~/vinyl/vinyl-api.server"
+import { createSession } from "~/vinyl/vinyl-session"
 
 export async function action({ request }: ActionArgs) {
   const form = zfd

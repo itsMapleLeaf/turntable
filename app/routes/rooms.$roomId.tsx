@@ -5,14 +5,15 @@ import {
   useNavigation,
 } from "@remix-run/react"
 import { json, redirect, type ActionArgs, type LoaderArgs } from "@vercel/remix"
-import { PlayCircle, Plus } from "lucide-react"
+import { Plus } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
-import { z } from "zod"
 import { zfd } from "zod-form-data"
 import { Button } from "~/components/button"
+import { Player } from "~/components/player"
 import { raise } from "~/helpers/raise"
-import { vinylApi, type Room } from "~/vinyl-api.server"
-import { getSessionToken } from "~/vinyl-session"
+import { vinylApi } from "~/vinyl/vinyl-api.server"
+import { getSessionToken } from "~/vinyl/vinyl-session"
+import { type Room } from "~/vinyl/vinyl-types"
 
 const songs = [
   { id: "1", title: "Song 1", addedBy: "User 1" },
@@ -64,6 +65,7 @@ export default function RoomPage() {
 
 function RoomPageContent({ room }: { room: Room }) {
   const [audio, setAudio] = useState<HTMLAudioElement>()
+  const { socketUrl } = useLoaderData<typeof loader>()
 
   useEffect(() => {
     const audio = new Audio(`/rooms/${room.id}/stream`)
@@ -109,183 +111,9 @@ function RoomPageContent({ room }: { room: Room }) {
         data-visible={!!audio || undefined}
         className="translate-y-full transition data-[visible]:translate-y-0"
       >
-        {audio && <Player audio={audio} />}
+        {audio && <Player socketUrl={socketUrl} room={room} audio={audio} />}
       </footer>
     </>
-  )
-}
-
-type RoomState = {
-  track?: { title: string; duration: number }
-  songProgress: number
-}
-
-  const [playing, setPlaying] = useState(!audio.paused)
-  useEffect(() => {
-    const handlePlay = () => setPlaying(true)
-    const handlePause = () => setPlaying(false)
-
-    audio.addEventListener("play", handlePlay)
-    audio.addEventListener("pause", handlePause)
-
-    return () => {
-      audio.removeEventListener("play", handlePlay)
-      audio.removeEventListener("pause", handlePause)
-    }
-  }, [audio])
-
-  const { socketUrl } = useLoaderData<typeof loader>()
-  const [roomState, setRoomState] = useState<RoomState>({
-    songProgress: 0,
-  })
-
-  useEffect(() => {
-    const socketMessageSchema = z.union([
-      z.object({
-        type: z.literal("player-time"),
-        seconds: z.number(),
-      }),
-      z.object({
-        type: z.literal("track-update"),
-        track: z.object({
-          title: z.string(),
-          duration: z.number(),
-        }),
-      }),
-    ])
-
-    let socket: WebSocket | undefined
-
-    function connect() {
-      socket = new WebSocket(socketUrl)
-      socket.addEventListener("message", handleMessage)
-      socket.addEventListener("close", handleClose)
-      socket.addEventListener("error", handleError)
-    }
-
-    function handleMessage(event: MessageEvent) {
-      try {
-        const result = socketMessageSchema.safeParse(
-          JSON.parse(event.data as string),
-        )
-
-        if (!result.success) {
-          console.error("Unknown socket message:", result.error)
-          return
-        }
-
-        if (result.data.type === "track-update") {
-          const { track } = result.data
-          setRoomState((state) => ({ ...state, track, songProgress: 0 }))
-        }
-
-        if (result.data.type === "player-time") {
-          const { seconds } = result.data
-          setRoomState((state) => ({ ...state, songProgress: seconds }))
-        }
-      } catch (error) {
-        console.error("Failed to parse socket message:", error)
-      }
-    }
-
-    function handleClose() {
-      setTimeout(connect, 1000)
-    }
-
-    function handleError() {
-      setTimeout(connect, 1000)
-    }
-
-    connect()
-
-    return () => {
-      socket?.removeEventListener("message", handleMessage)
-      socket?.removeEventListener("close", handleClose)
-      socket?.removeEventListener("error", handleError)
-      socket?.close()
-    }
-  }, [socketUrl])
-
-  const progress = roomState.songProgress / (roomState.track?.duration ?? 180)
-
-  return (
-    <footer className="panel sticky bottom-0 overflow-clip">
-      <div className="relative h-px w-full bg-white/25">
-        <div
-          className="h-full origin-left bg-accent-300"
-          style={{ transform: `scaleX(${progress})` }}
-        />
-        <div
-          className="top-full h-3 origin-left bg-gradient-to-b from-accent-400/30 via-accent-400/10"
-          style={{ transform: `scaleX(${progress})` }}
-        />
-      </div>
-
-      <div className="container flex flex-col items-center gap-4 py-4 sm:flex-row">
-        {playing && audio ? (
-          <VolumeSlider audio={audio} />
-        ) : (
-          <button
-            type="button"
-            onClick={() => {
-              audio.play().catch((error) => {
-                console.error("Failed to play audio:", error)
-              })
-            }}
-          >
-            <PlayCircle aria-hidden className="h-8 w-8" />
-            <span className="sr-only">Play</span>
-          </button>
-        )}
-
-        <div className="flex flex-1 flex-col text-center leading-5 sm:text-right">
-          {roomState.track ? (
-            <>
-              <p className="text-sm opacity-75">Now playing</p>
-              <p>{roomState.track.title}</p>
-            </>
-          ) : (
-            <p className="opacity-75">Nothing playing</p>
-          )}
-        </div>
-      </div>
-    </footer>
-  )
-}
-
-function VolumeSlider({ audio }: { audio: HTMLAudioElement }) {
-  const [volume, setVolume] = useState(0.5)
-
-  useEffect(() => {
-    const storedVolume = localStorage.getItem("volume")
-    if (!storedVolume) return
-
-    const storedVolumeNumber = Number(storedVolume)
-    if (!Number.isFinite(storedVolumeNumber)) return
-
-    setVolume(storedVolumeNumber)
-  }, [])
-
-  function handleVolumeChange(event: React.ChangeEvent<HTMLInputElement>) {
-    const newVolume = event.currentTarget.valueAsNumber
-    setVolume(newVolume)
-    localStorage.setItem("volume", String(newVolume))
-  }
-
-  useEffect(() => {
-    audio.volume = volume ** 2
-  }, [audio, volume])
-
-  return (
-    <input
-      type="range"
-      className="w-48"
-      min={0}
-      max={1}
-      step={0.01}
-      value={volume}
-      onChange={handleVolumeChange}
-    />
   )
 }
 
