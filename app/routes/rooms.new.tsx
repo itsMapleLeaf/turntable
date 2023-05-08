@@ -1,5 +1,6 @@
 import { useActionData } from "@remix-run/react"
 import { json, redirect, type ActionArgs, type LoaderArgs } from "@vercel/remix"
+import { zfd } from "zod-form-data"
 import { FormLayout } from "~/components/form-layout"
 import { vinylApi } from "~/vinyl-api.server"
 
@@ -13,15 +14,11 @@ export async function loader({ request }: LoaderArgs) {
 }
 
 export async function action({ request }: ActionArgs) {
-  const api = vinylApi(request)
-  const body = await request.formData()
+  const form = zfd
+    .formData({ name: zfd.text() })
+    .parse(await request.formData())
 
-  const name = body.get("name")
-  if (typeof name !== "string") {
-    return json({ error: "Missing room name" }, 400)
-  }
-
-  const result = await api.createRoom(name)
+  const result = await vinylApi(request).createRoom(form.name)
   if (!result.data) {
     return json({ error: result.error }, 400)
   }
