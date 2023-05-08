@@ -199,16 +199,18 @@ function Player({ audio }: { audio: HTMLAudioElement }) {
     }
   }, [socketUrl])
 
+  const progress = roomState.songProgress / (roomState.track?.duration ?? 180)
+
   return (
-    <footer className="panel sticky bottom-0">
-      <div className="h-px w-full overflow-clip bg-white/25">
+    <footer className="panel sticky bottom-0 overflow-clip">
+      <div className="relative h-px w-full bg-white/25">
         <div
-          className="h-full origin-left bg-accent-400"
-          style={{
-            transform: `scaleX(${
-              roomState.songProgress / (roomState.track?.duration ?? 180)
-            })`,
-          }}
+          className="h-full origin-left bg-accent-300"
+          style={{ transform: `scaleX(${progress})` }}
+        />
+        <div
+          className="top-full h-3 origin-left bg-gradient-to-b from-accent-400/30 via-accent-400/10"
+          style={{ transform: `scaleX(${progress})` }}
         />
       </div>
 
