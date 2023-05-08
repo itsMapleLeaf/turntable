@@ -12,5 +12,6 @@ export async function loader({ request, params }: LoaderArgs) {
   return vinylApi(request).getRoomStream(
     params.roomId ?? raise("roomId not defined"),
     token,
+    request.signal,
   )
 }

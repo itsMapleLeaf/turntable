@@ -72,6 +72,10 @@ function RoomPageContent({ room }: { room: Room }) {
       audio.addEventListener("ended", () => {
         setPlaying(false)
       })
+
+      return () => {
+        audio.src = ""
+      }
     } else {
       setAudio(undefined)
     }
