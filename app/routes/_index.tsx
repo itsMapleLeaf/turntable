@@ -1,6 +1,7 @@
 import { Link, useLoaderData } from "@remix-run/react"
 import { json, redirect, type LoaderArgs } from "@vercel/remix"
 import { Disc } from "lucide-react"
+import { Button } from "~/components/button"
 import { vinylApi } from "~/vinyl-api.server"
 
 export async function loader({ request }: LoaderArgs) {
@@ -30,9 +31,7 @@ function RoomListPageContent() {
     return (
       <div className="flex flex-col items-center gap-4 py-16 text-center">
         <p className="text-2xl font-light">No rooms found.</p>
-        <Link to="/rooms/new" className="button">
-          Create one!
-        </Link>
+        <Button element={<Link to="/rooms/new" />} label="Create one!" />
       </div>
     )
   }

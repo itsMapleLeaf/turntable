@@ -2,6 +2,7 @@ import { Form } from "@remix-run/react"
 import { Wand2 } from "lucide-react"
 import { type Nullish } from "~/helpers/types"
 import { usePendingSubmit } from "~/helpers/use-pending-submit"
+import { Button } from "./button"
 
 export type FormLayoutProps = {
   title: string
@@ -27,9 +28,12 @@ export function FormLayout({
       >
         <h1 className="text-3xl font-light">{title}</h1>
         {children}
-        <button className="button" disabled={pending}>
-          <Wand2 aria-hidden /> {pending ? submitTextPending : submitText}
-        </button>
+        <Button
+          pending={pending}
+          label={submitText}
+          pendingLabel={submitTextPending}
+          iconElement={<Wand2 />}
+        />
         {error ? <p className="text-error-400">{error}</p> : null}
       </Form>
     </main>
