@@ -7,10 +7,12 @@ import {
 import { json, redirect, type ActionArgs, type LoaderArgs } from "@vercel/remix"
 import { PlayCircle, Plus } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
+import { z } from "zod"
 import { zfd } from "zod-form-data"
 import { Button } from "~/components/button"
 import { raise } from "~/helpers/raise"
 import { vinylApi, type Room } from "~/vinyl-api.server"
+import { getSessionToken } from "~/vinyl-session"
 
 const songs = [
   { id: "1", title: "Song 1", addedBy: "User 1" },
@@ -24,16 +26,23 @@ const songs = [
 export async function loader({ request, params }: LoaderArgs) {
   const api = vinylApi(request)
 
-  const [user, room] = await Promise.all([
+  const [user, room, token] = await Promise.all([
     api.getUser(),
     api.getRoom(params.roomId ?? raise("roomId not defined")),
+    getSessionToken(request),
   ])
 
-  if (!user.data) {
+  if (!user.data || !token) {
     return redirect(`/sign-in?redirect=${request.url}`)
   }
 
-  return json({ room })
+  return json({
+    room,
+    socketUrl: new URL(
+      `/v1/gateway?token=${token}`,
+      process.env.VINYL_SOCKET_URL ?? raise("VINYL_SOCKET_URL is not defined"),
+    ).href,
+  })
 }
 
 export async function action({ request, params }: ActionArgs) {
@@ -80,6 +89,7 @@ function RoomPageContent({ room }: { room: Room }) {
         key={room.id}
         ref={setAudio}
       />
+
       <div className="container flex-1 py-4">
         <main className="panel flex flex-col gap-4 border p-4">
           <h1 className="text-2xl font-light">{room.name}</h1>
@@ -119,14 +129,103 @@ function RoomPageContent({ room }: { room: Room }) {
               <span className="sr-only">Play</span>
             </button>
           )}
-          <p className="flex flex-1 flex-row justify-end leading-5">
-            <span className="text-sm opacity-75">Now playing</span>
-            <br />
-            Something
-          </p>
+          <NowPlaying />
         </div>
       </footer>
     </>
+  )
+}
+
+type RoomState = {
+  track?: { title: string; duration: number }
+  songProgress: number
+}
+
+function NowPlaying() {
+  const { socketUrl } = useLoaderData<typeof loader>()
+
+  const [roomState, setRoomState] = useState<RoomState>({
+    songProgress: 0,
+  })
+
+  useEffect(() => {
+    let socket: WebSocket | undefined
+
+    const socketMessageSchema = z.union([
+      z.object({
+        type: z.literal("player-time"),
+        seconds: z.number(),
+      }),
+      z.object({
+        type: z.literal("track-update"),
+        track: z.object({
+          title: z.string(),
+          duration: z.number(),
+        }),
+      }),
+    ])
+
+    function connect() {
+      socket = new WebSocket(socketUrl)
+      socket.addEventListener("message", handleMessage)
+      socket.addEventListener("close", handleClose)
+      socket.addEventListener("error", handleError)
+    }
+
+    function handleMessage(event: MessageEvent) {
+      try {
+        const result = socketMessageSchema.safeParse(
+          JSON.parse(event.data as string),
+        )
+
+        if (!result.success) {
+          console.error("Unknown socket message:", result.error)
+          return
+        }
+
+        if (result.data.type === "track-update") {
+          const { track } = result.data
+          setRoomState((state) => ({ ...state, track, songProgress: 0 }))
+        }
+
+        if (result.data.type === "player-time") {
+          const { seconds } = result.data
+          setRoomState((state) => ({ ...state, songProgress: seconds }))
+        }
+      } catch (error) {
+        console.error("Failed to parse socket message:", error)
+      }
+    }
+
+    function handleClose() {
+      setTimeout(connect, 1000)
+    }
+
+    function handleError() {
+      setTimeout(connect, 1000)
+    }
+
+    connect()
+
+    return () => {
+      socket?.removeEventListener("message", handleMessage)
+      socket?.removeEventListener("close", handleClose)
+      socket?.removeEventListener("error", handleError)
+      socket?.close()
+    }
+  }, [socketUrl])
+
+  return (
+    <div className="flex flex-1 flex-col items-end leading-5">
+      {roomState.track ? (
+        <>
+          <p className="text-sm opacity-75">Now playing</p>
+          <p>{roomState.track.title}</p>
+        </>
+      ) : (
+        <p className="text-gray-400">Nothing playing</p>
+      )}
+    </div>
   )
 }
 
@@ -156,7 +255,7 @@ function VolumeSlider({ audio }: { audio: HTMLAudioElement }) {
   return (
     <input
       type="range"
-      className="flex-1"
+      className="w-48"
       min={0}
       max={1}
       step={0.01}
