@@ -64,23 +64,6 @@ export default function RoomPage() {
 
 function RoomPageContent({ room }: { room: Room }) {
   const [audio, setAudio] = useState<HTMLAudioElement | null>()
-  const [playing, setPlaying] = useState(false)
-
-  useEffect(() => {
-    if (!audio) return
-
-    const handlePlay = () => setPlaying(true)
-    const handlePause = () => setPlaying(false)
-
-    audio.addEventListener("play", handlePlay)
-    audio.addEventListener("pause", handlePause)
-
-    return () => {
-      audio.removeEventListener("play", handlePlay)
-      audio.removeEventListener("pause", handlePause)
-    }
-  }, [audio])
-
   return (
     <>
       <audio
@@ -112,25 +95,11 @@ function RoomPageContent({ room }: { room: Room }) {
         </main>
       </div>
 
-      <footer className="panel sticky bottom-0 border-t p-4">
-        <div className="container flex items-center">
-          {playing && audio ? (
-            <VolumeSlider audio={audio} />
-          ) : (
-            <button
-              type="button"
-              onClick={() => {
-                audio?.play().catch((error) => {
-                  console.error("Failed to play audio:", error)
-                })
-              }}
-            >
-              <PlayCircle aria-hidden className="h-8 w-8" />
-              <span className="sr-only">Play</span>
-            </button>
-          )}
-          <NowPlaying />
-        </div>
+      <footer
+        data-visible={!!audio || undefined}
+        className="translate-y-full transition data-[visible]:translate-y-0"
+      >
+        {audio && <Player audio={audio} />}
       </footer>
     </>
   )
@@ -141,16 +110,27 @@ type RoomState = {
   songProgress: number
 }
 
-function NowPlaying() {
-  const { socketUrl } = useLoaderData<typeof loader>()
+function Player({ audio }: { audio: HTMLAudioElement }) {
+  const [playing, setPlaying] = useState(false)
+  useEffect(() => {
+    const handlePlay = () => setPlaying(true)
+    const handlePause = () => setPlaying(false)
 
+    audio.addEventListener("play", handlePlay)
+    audio.addEventListener("pause", handlePause)
+
+    return () => {
+      audio.removeEventListener("play", handlePlay)
+      audio.removeEventListener("pause", handlePause)
+    }
+  }, [audio])
+
+  const { socketUrl } = useLoaderData<typeof loader>()
   const [roomState, setRoomState] = useState<RoomState>({
     songProgress: 0,
   })
 
   useEffect(() => {
-    let socket: WebSocket | undefined
-
     const socketMessageSchema = z.union([
       z.object({
         type: z.literal("player-time"),
@@ -164,6 +144,8 @@ function NowPlaying() {
         }),
       }),
     ])
+
+    let socket: WebSocket | undefined
 
     function connect() {
       socket = new WebSocket(socketUrl)
@@ -216,16 +198,47 @@ function NowPlaying() {
   }, [socketUrl])
 
   return (
-    <div className="flex flex-1 flex-col items-end leading-5">
-      {roomState.track ? (
-        <>
-          <p className="text-sm opacity-75">Now playing</p>
-          <p>{roomState.track.title}</p>
-        </>
-      ) : (
-        <p className="text-gray-400">Nothing playing</p>
-      )}
-    </div>
+    <footer className="panel sticky bottom-0">
+      <div className="h-px w-full overflow-clip bg-white/25">
+        <div
+          className="h-full origin-left bg-accent-400"
+          style={{
+            transform: `scaleX(${
+              roomState.songProgress / (roomState.track?.duration ?? 180)
+            })`,
+          }}
+        />
+      </div>
+
+      <div className="container flex flex-col items-center gap-4 py-4 sm:flex-row">
+        {playing && audio ? (
+          <VolumeSlider audio={audio} />
+        ) : (
+          <button
+            type="button"
+            onClick={() => {
+              audio?.play().catch((error) => {
+                console.error("Failed to play audio:", error)
+              })
+            }}
+          >
+            <PlayCircle aria-hidden className="h-8 w-8" />
+            <span className="sr-only">Play</span>
+          </button>
+        )}
+
+        <div className="flex flex-1 flex-col text-center leading-5 sm:text-right">
+          {roomState.track ? (
+            <>
+              <p className="text-sm opacity-75">Now playing</p>
+              <p>{roomState.track.title}</p>
+            </>
+          ) : (
+            <p className="opacity-75">Nothing playing</p>
+          )}
+        </div>
+      </div>
+    </footer>
   )
 }
 
