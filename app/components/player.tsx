@@ -1,5 +1,6 @@
 import { PlayCircle } from "lucide-react"
 import { useEffect, useState } from "react"
+import { setStreamVolume, useStreamPlaying } from "~/stream-audio"
 import { vinylSocket } from "~/vinyl/vinyl-socket"
 import { type Room, type Track, type User } from "~/vinyl/vinyl-types"
 
@@ -12,25 +13,13 @@ type RoomState = {
 export function Player({
   socketUrl,
   room,
-  audio,
+  onPlay,
 }: {
   socketUrl: string
   room: Room
-  audio: HTMLAudioElement
+  onPlay: () => void
 }) {
-  const [playing, setPlaying] = useState(!audio.paused)
-  useEffect(() => {
-    const handlePlay = () => setPlaying(true)
-    const handlePause = () => setPlaying(false)
-
-    audio.addEventListener("play", handlePlay)
-    audio.addEventListener("pause", handlePause)
-
-    return () => {
-      audio.removeEventListener("play", handlePlay)
-      audio.removeEventListener("pause", handlePause)
-    }
-  }, [audio])
+  const playing = useStreamPlaying()
 
   const [roomState, setRoomState] = useState<RoomState>({
     members: room.connections,
@@ -74,17 +63,10 @@ export function Player({
       </div>
 
       <div className="container flex flex-col items-center gap-4 py-4 sm:flex-row">
-        {playing && audio ? (
-          <VolumeSlider audio={audio} />
+        {playing ? (
+          <VolumeSlider />
         ) : (
-          <button
-            type="button"
-            onClick={() => {
-              audio.play().catch((error) => {
-                console.error("Failed to play audio:", error)
-              })
-            }}
-          >
+          <button type="button" onClick={onPlay}>
             <PlayCircle aria-hidden className="h-8 w-8" />
             <span className="sr-only">Play</span>
           </button>
@@ -105,7 +87,7 @@ export function Player({
   )
 }
 
-function VolumeSlider({ audio }: { audio: HTMLAudioElement }) {
+function VolumeSlider() {
   const [volume, setVolume] = useState(0.5)
 
   useEffect(() => {
@@ -125,8 +107,8 @@ function VolumeSlider({ audio }: { audio: HTMLAudioElement }) {
   }
 
   useEffect(() => {
-    audio.volume = volume ** 2
-  }, [audio, volume])
+    setStreamVolume(volume)
+  }, [volume])
 
   return (
     <input

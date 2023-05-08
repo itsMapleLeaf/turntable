@@ -6,11 +6,12 @@ import {
 } from "@remix-run/react"
 import { json, redirect, type ActionArgs, type LoaderArgs } from "@vercel/remix"
 import { Plus } from "lucide-react"
-import { useEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useRef } from "react"
 import { zfd } from "zod-form-data"
 import { Button } from "~/components/button"
 import { Player } from "~/components/player"
 import { raise } from "~/helpers/raise"
+import { playStream, stopStream } from "~/stream-audio"
 import { vinylApi } from "~/vinyl/vinyl-api.server"
 import { getSessionToken } from "~/vinyl/vinyl-session"
 import { type Room } from "~/vinyl/vinyl-types"
@@ -64,22 +65,18 @@ export default function RoomPage() {
 }
 
 function RoomPageContent({ room }: { room: Room }) {
-  const [audio, setAudio] = useState<HTMLAudioElement>()
   const { socketUrl } = useLoaderData<typeof loader>()
 
-  useEffect(() => {
-    const audio = new Audio(`/rooms/${room.id}/stream`)
-    setAudio(audio)
-
-    audio.play().catch((error) => {
+  const play = useCallback(() => {
+    playStream(`/rooms/${room.id}/stream`).catch((error) => {
       console.error("Failed to play audio:", error)
     })
-
-    return () => {
-      audio.pause()
-      audio.src = ""
-    }
   }, [room.id])
+
+  useEffect(() => {
+    play()
+    return () => stopStream()
+  }, [play])
 
   return (
     <>
@@ -107,12 +104,7 @@ function RoomPageContent({ room }: { room: Room }) {
         </main>
       </div>
 
-      <footer
-        data-visible={!!audio || undefined}
-        className="translate-y-full transition data-[visible]:translate-y-0"
-      >
-        {audio && <Player socketUrl={socketUrl} room={room} audio={audio} />}
-      </footer>
+      <Player socketUrl={socketUrl} room={room} onPlay={play} />
     </>
   )
 }
