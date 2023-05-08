@@ -2,6 +2,7 @@ import { useActionData } from "@remix-run/react"
 import { json, redirect, type ActionArgs, type LoaderArgs } from "@vercel/remix"
 import { zfd } from "zod-form-data"
 import { FormLayout } from "~/components/form-layout"
+import { Label } from "~/components/label"
 import { vinylApi } from "~/vinyl-api.server"
 
 export async function loader({ request }: LoaderArgs) {
@@ -35,8 +36,7 @@ export default function CreateRoomPage() {
       submitTextPending="Creating..."
       error={error}
     >
-      <label className="w-full">
-        <div className="mb-1 text-sm font-medium leading-none">Room name</div>
+      <Label text="Room name">
         <input
           name="name"
           type="text"
@@ -44,7 +44,7 @@ export default function CreateRoomPage() {
           className="input"
           required
         />
-      </label>
+      </Label>
     </FormLayout>
   )
 }

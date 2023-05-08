@@ -1,4 +1,5 @@
 import { FormLayout, type FormLayoutProps } from "./form-layout"
+import { Label } from "./label"
 
 export function AuthForm({
   footer,
@@ -8,24 +9,24 @@ export function AuthForm({
 }) {
   return (
     <FormLayout {...props}>
-      <label className="w-full">
-        <div className="mb-1 text-sm font-medium leading-none">Username</div>
+      <Label text="Username">
         <input
           name="username"
           type="text"
           placeholder="awesomeuser"
           className="input"
+          required
         />
-      </label>
-      <label className="w-full">
-        <div className="mb-1 text-sm font-medium leading-none">Password</div>
+      </Label>
+      <Label text="Password">
         <input
           name="password"
           type="password"
           placeholder="•••••••"
           className="input"
+          required
         />
-      </label>
+      </Label>
       {footer}
     </FormLayout>
   )
