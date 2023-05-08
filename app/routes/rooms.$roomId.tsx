@@ -287,10 +287,10 @@ function AddSongForm() {
   const formRef = useRef<HTMLFormElement>(null)
 
   useEffect(() => {
-    if (!pending) {
+    if (!pending && !error) {
       formRef.current?.reset()
     }
-  }, [pending])
+  }, [error, pending])
 
   return (
     <Form method="POST" className="flex flex-col gap-3" ref={formRef}>
