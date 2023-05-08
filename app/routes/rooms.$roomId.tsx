@@ -84,9 +84,11 @@ function RoomPageContent({ room }: { room: Room }) {
               <li key={song.id} className="flex flex-row gap-3">
                 <div className="h-12 w-12 bg-accent-400" />
                 <div className="flex-1 leading-5">
-                  <h2 className="text-lg font-light">{song.title}</h2>
+                  <h2 className="text-lg font-light">
+                    SongListItemTitleContent
+                  </h2>
                   <p className="text-sm text-gray-400">
-                    Added by {song.addedBy}
+                    SongListItemAddedByContent
                   </p>
                 </div>
               </li>
