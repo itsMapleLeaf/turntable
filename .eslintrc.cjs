@@ -14,5 +14,6 @@ module.exports = {
   rules: {
     "unicorn/filename-case": "off",
     "unicorn/text-encoding-identifier-case": "off",
+    "jsx-a11y/media-has-caption": "off",
   },
 }
