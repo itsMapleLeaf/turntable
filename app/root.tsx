@@ -25,10 +25,8 @@ export default function Root() {
   return (
     <html
       lang="en"
-      className="text-gray-100 bg-blend-darken"
-      style={{
-        background: `rgba(0, 0, 0, 0.50) url(${background}) center`,
-      }}
+      className="bg-center text-gray-100 bg-blend-darken"
+      style={{ backgroundImage: `url(${background})` }}
     >
       <head>
         <Links />
@@ -49,7 +47,7 @@ export default function Root() {
         ></link>
       </head>
       <body>
-        <div className="relative isolate flex min-h-screen flex-col">
+        <div className="relative isolate flex min-h-screen flex-col bg-black/50">
           <Header user={user} />
           <Outlet />
         </div>
