@@ -75,6 +75,7 @@ function RoomPageContent({ room }: { room: Room }) {
 
       return () => {
         audio.src = ""
+        setAudio(undefined)
       }
     } else {
       setAudio(undefined)
