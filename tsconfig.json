@@ -1,6 +1,7 @@
 {
   "extends": "@itsmapleleaf/configs/tsconfig.base",
   "compilerOptions": {
+    "baseUrl": ".",
     "paths": {
       "~/*": ["./app/*"]
     }
