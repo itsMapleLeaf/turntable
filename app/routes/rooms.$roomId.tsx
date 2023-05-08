@@ -6,8 +6,9 @@ import {
 } from "@remix-run/react"
 import { json, redirect, type ActionArgs, type LoaderArgs } from "@vercel/remix"
 import { PlayCircle, Plus } from "lucide-react"
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { zfd } from "zod-form-data"
+import { Button } from "~/components/button"
 import { raise } from "~/helpers/raise"
 import { vinylApi, type Room } from "~/vinyl-api.server"
 
@@ -53,63 +54,32 @@ export default function RoomPage() {
 }
 
 function RoomPageContent({ room }: { room: Room }) {
+  const [audio, setAudio] = useState<HTMLAudioElement | null>()
   const [playing, setPlaying] = useState(false)
-  const [audio, setAudio] = useState<HTMLAudioElement>()
-  const [volume, setVolume] = useState(0.5)
 
   useEffect(() => {
-    const storedVolume = localStorage.getItem("volume")
-    if (!storedVolume) return
+    if (!audio) return
 
-    const storedVolumeNumber = Number(storedVolume)
-    if (!Number.isFinite(storedVolumeNumber)) return
+    const handlePlay = () => setPlaying(true)
+    const handlePause = () => setPlaying(false)
 
-    setVolume(storedVolumeNumber)
-  }, [])
+    audio.addEventListener("play", handlePlay)
+    audio.addEventListener("pause", handlePause)
 
-  const handleVolumeChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const newVolume = event.currentTarget.valueAsNumber
-    setVolume(newVolume)
-    localStorage.setItem("volume", String(newVolume))
-  }
-
-  useEffect(() => {
-    if (playing) {
-      const audio = new Audio(`/rooms/${room.id}/stream`)
-
-      audio
-        .play()
-        .then(() => setAudio(audio))
-        .catch((error) => {
-          console.error("Failed to play audio:", error)
-          setPlaying(false)
-        })
-
-      audio.addEventListener("ended", () => {
-        setPlaying(false)
-      })
-
-      return () => {
-        audio.src = ""
-        setAudio(undefined)
-      }
-    } else {
-      setAudio(undefined)
+    return () => {
+      audio.removeEventListener("play", handlePlay)
+      audio.removeEventListener("pause", handlePause)
     }
-  }, [playing, room.id])
-
-  useEffect(() => {
-    setPlaying(true)
-  }, [room.id])
-
-  useEffect(() => {
-    if (audio) {
-      audio.volume = volume ** 2
-    }
-  }, [audio, volume])
+  }, [audio])
 
   return (
     <>
+      <audio
+        src={`/rooms/${room.id}/stream`}
+        autoPlay
+        key={room.id}
+        ref={setAudio}
+      />
       <div className="container flex-1 py-4">
         <main className="panel flex flex-col gap-4 border p-4">
           <h1 className="text-2xl font-light">{room.name}</h1>
@@ -134,18 +104,17 @@ function RoomPageContent({ room }: { room: Room }) {
 
       <footer className="panel sticky bottom-0 border-t p-4">
         <div className="container flex items-center">
-          {playing ? (
-            <input
-              type="range"
-              className="flex-1"
-              min={0}
-              max={1}
-              step={0.01}
-              value={volume}
-              onChange={handleVolumeChange}
-            />
+          {playing && audio ? (
+            <VolumeSlider audio={audio} />
           ) : (
-            <button onClick={() => setPlaying(true)}>
+            <button
+              type="button"
+              onClick={() => {
+                audio?.play().catch((error) => {
+                  console.error("Failed to play audio:", error)
+                })
+              }}
+            >
               <PlayCircle aria-hidden className="h-8 w-8" />
               <span className="sr-only">Play</span>
             </button>
@@ -161,24 +130,64 @@ function RoomPageContent({ room }: { room: Room }) {
   )
 }
 
+function VolumeSlider({ audio }: { audio: HTMLAudioElement }) {
+  const [volume, setVolume] = useState(0.5)
+
+  useEffect(() => {
+    const storedVolume = localStorage.getItem("volume")
+    if (!storedVolume) return
+
+    const storedVolumeNumber = Number(storedVolume)
+    if (!Number.isFinite(storedVolumeNumber)) return
+
+    setVolume(storedVolumeNumber)
+  }, [])
+
+  function handleVolumeChange(event: React.ChangeEvent<HTMLInputElement>) {
+    const newVolume = event.currentTarget.valueAsNumber
+    setVolume(newVolume)
+    localStorage.setItem("volume", String(newVolume))
+  }
+
+  useEffect(() => {
+    audio.volume = volume ** 2
+  }, [audio, volume])
+
+  return (
+    <input
+      type="range"
+      className="flex-1"
+      min={0}
+      max={1}
+      step={0.01}
+      value={volume}
+      onChange={handleVolumeChange}
+    />
+  )
+}
+
 function AddSongForm() {
   const { error } = useActionData<typeof action>() ?? {}
   const navigation = useNavigation()
   const pending = navigation.state === "submitting"
+  const formRef = useRef<HTMLFormElement>(null)
+
+  useEffect(() => {
+    if (!pending) {
+      formRef.current?.reset()
+    }
+  }, [pending])
+
   return (
-    <Form method="POST" className="flex flex-col gap-3">
+    <Form method="POST" className="flex flex-col gap-3" ref={formRef}>
       <div className="flex flex-row gap-2">
-        <input
-          name="url"
-          placeholder="Stream URL"
-          className="min-w-0 flex-1 border border-white/10 bg-transparent/50 px-3 py-2"
+        <input name="url" placeholder="Stream URL" className="input" required />
+        <Button
+          pending={pending}
+          label="Add"
+          pendingLabel="Adding..."
+          iconElement={<Plus />}
         />
-        <button
-          data-pending={pending || undefined}
-          className="flex items-center gap-2 border border-white/10 p-2 data-[pending]:opacity-50"
-        >
-          {pending ? "Submitting..." : <Plus />}
-        </button>
       </div>
       {!pending && error ? (
         <p className="text-sm text-error-400">{error}</p>
