@@ -58,6 +58,22 @@ function RoomPageContent({ room }: { room: Room }) {
   const [volume, setVolume] = useState(0.5)
 
   useEffect(() => {
+    const storedVolume = localStorage.getItem("volume")
+    if (!storedVolume) return
+
+    const storedVolumeNumber = Number(storedVolume)
+    if (!Number.isFinite(storedVolumeNumber)) return
+
+    setVolume(storedVolumeNumber)
+  }, [])
+
+  const handleVolumeChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const newVolume = event.currentTarget.valueAsNumber
+    setVolume(newVolume)
+    localStorage.setItem("volume", String(newVolume))
+  }
+
+  useEffect(() => {
     if (playing) {
       const audio = new Audio(`/rooms/${room.id}/stream`)
 
@@ -126,7 +142,7 @@ function RoomPageContent({ room }: { room: Room }) {
               max={1}
               step={0.01}
               value={volume}
-              onChange={(event) => setVolume(event.currentTarget.valueAsNumber)}
+              onChange={handleVolumeChange}
             />
           ) : (
             <button onClick={() => setPlaying(true)}>
