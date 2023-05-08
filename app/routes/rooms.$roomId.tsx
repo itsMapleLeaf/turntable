@@ -63,16 +63,24 @@ export default function RoomPage() {
 }
 
 function RoomPageContent({ room }: { room: Room }) {
-  const [audio, setAudio] = useState<HTMLAudioElement | null>()
+  const [audio, setAudio] = useState<HTMLAudioElement>()
+
+  useEffect(() => {
+    const audio = new Audio(`/rooms/${room.id}/stream`)
+    setAudio(audio)
+
+    audio.play().catch((error) => {
+      console.error("Failed to play audio:", error)
+    })
+
+    return () => {
+      audio.pause()
+      audio.src = ""
+    }
+  }, [room.id])
+
   return (
     <>
-      <audio
-        src={`/rooms/${room.id}/stream`}
-        autoPlay
-        key={room.id}
-        ref={setAudio}
-      />
-
       <div className="container flex-1 py-4">
         <main className="panel flex flex-col gap-4 border p-4">
           <h1 className="text-2xl font-light">{room.name}</h1>
@@ -112,8 +120,7 @@ type RoomState = {
   songProgress: number
 }
 
-function Player({ audio }: { audio: HTMLAudioElement }) {
-  const [playing, setPlaying] = useState(false)
+  const [playing, setPlaying] = useState(!audio.paused)
   useEffect(() => {
     const handlePlay = () => setPlaying(true)
     const handlePause = () => setPlaying(false)
@@ -221,7 +228,7 @@ function Player({ audio }: { audio: HTMLAudioElement }) {
           <button
             type="button"
             onClick={() => {
-              audio?.play().catch((error) => {
+              audio.play().catch((error) => {
                 console.error("Failed to play audio:", error)
               })
             }}
