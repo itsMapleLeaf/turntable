@@ -51,7 +51,6 @@ export default function Root() {
           <Header user={user} />
           <Outlet />
         </div>
-        <audio data-id="stream-audio" />
         <Scripts />
         <LiveReload />
       </body>
