@@ -46,7 +46,7 @@
   @keyframes fade-in-zoom {
     from {
       opacity: 0;
-      transform: scale(0.95);
+      transform: scale(0.9);
     }
     to {
       opacity: 1;
@@ -61,17 +61,21 @@
     }
     to {
       opacity: 0;
-      transform: scale(0.95);
+      transform: scale(0.9);
     }
   }
 
   .radix-fade-zoom-transition {
-    transform-origin: var(--radix-popover-content-transform-origin);
+    transform-origin: var(--radix-popper-transform-origin);
   }
-  .radix-fade-zoom-transition[data-state="open"] {
-    animation: fade-in-zoom theme(transitionDuration.DEFAULT);
+  .radix-fade-zoom-transition[data-state="open"],
+  .radix-fade-zoom-transition[data-state="delayed-open"],
+  .radix-fade-zoom-transition[data-state="instant-open"] {
+    animation: fade-in-zoom theme(transitionDuration.DEFAULT)
+      theme(transitionTimingFunction.DEFAULT);
   }
   .radix-fade-zoom-transition[data-state="closed"] {
-    animation: fade-out-zoom theme(transitionDuration.DEFAULT);
+    animation: fade-out-zoom theme(transitionDuration.DEFAULT)
+      theme(transitionTimingFunction.DEFAULT);
   }
 }

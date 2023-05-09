@@ -11,6 +11,7 @@ import { zfd } from "zod-form-data"
 import { Button } from "~/components/button"
 import { NowPlaying } from "~/components/now-playing"
 import { ProgressBar } from "~/components/progress-bar"
+import { RoomMembers } from "~/components/room-members"
 import { RoomStateProvider } from "~/components/room-state-context"
 import { VolumeSlider } from "~/components/volume-slider"
 import { raise } from "~/helpers/raise"
@@ -88,7 +89,7 @@ function RoomPageContent({ room }: { room: Room }) {
         <main className="panel flex flex-col gap-4 border p-4">
           <div className="flex items-center">
             <h1 className="flex-1 text-2xl font-light">{room.name}</h1>
-            {/* <RoomMembers /> */}
+            <RoomMembers />
           </div>
           <hr className="-mx-4 border-white/10" />
           <AddSongForm />
