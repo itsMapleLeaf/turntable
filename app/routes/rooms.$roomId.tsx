@@ -5,13 +5,16 @@ import {
   useNavigation,
 } from "@remix-run/react"
 import { json, redirect, type ActionArgs, type LoaderArgs } from "@vercel/remix"
-import { Plus } from "lucide-react"
+import { PlayCircle, Plus } from "lucide-react"
 import { useCallback, useEffect, useRef } from "react"
 import { zfd } from "zod-form-data"
 import { Button } from "~/components/button"
-import { Player } from "~/components/player"
+import { NowPlaying } from "~/components/now-playing"
+import { ProgressBar } from "~/components/progress-bar"
+import { RoomStateProvider } from "~/components/room-state-context"
+import { VolumeSlider } from "~/components/volume-slider"
 import { raise } from "~/helpers/raise"
-import { playStream, stopStream } from "~/stream-audio"
+import { playStream, stopStream, useStreamPlaying } from "~/stream-audio"
 import { vinylApi } from "~/vinyl/vinyl-api.server"
 import { getSessionToken } from "~/vinyl/vinyl-session"
 import { type Room } from "~/vinyl/vinyl-types"
@@ -66,6 +69,7 @@ export default function RoomPage() {
 
 function RoomPageContent({ room }: { room: Room }) {
   const { socketUrl } = useLoaderData<typeof loader>()
+  const playing = useStreamPlaying()
 
   const play = useCallback(() => {
     playStream(`/rooms/${room.id}/stream`).catch((error) => {
@@ -79,10 +83,13 @@ function RoomPageContent({ room }: { room: Room }) {
   }, [play])
 
   return (
-    <>
+    <RoomStateProvider room={room} socketUrl={socketUrl}>
       <div className="container flex-1 py-4">
         <main className="panel flex flex-col gap-4 border p-4">
-          <h1 className="text-2xl font-light">{room.name}</h1>
+          <div className="flex items-center">
+            <h1 className="flex-1 text-2xl font-light">{room.name}</h1>
+            {/* <RoomMembers /> */}
+          </div>
           <hr className="-mx-4 border-white/10" />
           <AddSongForm />
           <hr className="-mx-4 border-white/10" />
@@ -104,8 +111,21 @@ function RoomPageContent({ room }: { room: Room }) {
         </main>
       </div>
 
-      <Player socketUrl={socketUrl} room={room} onPlay={play} />
-    </>
+      <footer className="panel sticky bottom-0">
+        <ProgressBar />
+        <div className="container flex flex-col items-center gap-4 py-4 sm:flex-row">
+          {playing ? (
+            <VolumeSlider />
+          ) : (
+            <button type="button" onClick={play}>
+              <PlayCircle aria-hidden className="h-8 w-8" />
+              <span className="sr-only">Play</span>
+            </button>
+          )}
+          <NowPlaying />
+        </div>
+      </footer>
+    </RoomStateProvider>
   )
 }
 
