@@ -25,7 +25,7 @@ export default function Root() {
   return (
     <html
       lang="en"
-      className="break-words bg-center text-gray-100 bg-blend-darken [word-break:break-word]"
+      className="break-words bg-center text-gray-100 bg-blend-darken [word-break:break-word] overflow-x-clip"
       style={{ backgroundImage: `url(${background})` }}
     >
       <head>
