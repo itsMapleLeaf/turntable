@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react"
-import { setStreamVolume } from "~/stream-audio"
+import { setStreamVolume } from "./stream-audio"
 
 export function VolumeSlider() {
   const [volume, setVolume] = useState(0.5)
