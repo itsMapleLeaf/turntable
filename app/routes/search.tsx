@@ -24,11 +24,15 @@ export function useSearchFetcher(queryArg: string) {
 
   useEffect(() => doSearch(query), [doSearch, query])
 
+  if (!query) {
+    return { state: "idle", data: undefined, error: undefined } as const
+  }
+
   if (fetcher.state === "loading") {
     return { state: "loading", data: undefined, error: undefined } as const
   }
 
-  if (!query || !result) {
+  if (!result) {
     return { state: "idle", data: undefined, error: undefined } as const
   }
 
