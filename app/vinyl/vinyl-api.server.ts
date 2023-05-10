@@ -1,6 +1,6 @@
 import { z } from "zod"
 import { getSessionToken } from "./vinyl-session"
-import { type Room, roomSchema, userSchema } from "./vinyl-types"
+import { roomSchema, userSchema, type Room } from "./vinyl-types"
 
 const apiUrl = new URL(
   "/v1/",
@@ -170,7 +170,7 @@ export function vinylApi(request: Request) {
           headers.Authorization = `Bearer ${token}`
         }
 
-        const response = await fetch(new URL("audio/input", apiUrl), {
+        const response = await fetch(new URL(`rooms/${roomId}/input`, apiUrl), {
           method: "POST",
           headers,
           body: url,
