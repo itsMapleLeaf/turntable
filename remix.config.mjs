@@ -8,5 +8,6 @@ export default {
     v2_normalizeFormMethod: true,
     v2_routeConvention: true,
   },
+  serverDependenciesToBundle: ["pretty-ms", "parse-ms"],
   watchPaths: ["./tailwind.config.cjs"],
 }
