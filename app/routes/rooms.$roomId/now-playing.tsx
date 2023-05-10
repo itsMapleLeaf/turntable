@@ -7,7 +7,7 @@ export function NowPlaying() {
       {track ? (
         <>
           <p className="text-sm opacity-75">Now playing</p>
-          <p>{track.title}</p>
+          <p className="line-clamp-1 [word-break:break-all]">{track.title}</p>
         </>
       ) : (
         <p className="opacity-75">Nothing playing</p>
