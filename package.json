@@ -22,6 +22,7 @@
     "@remix-run/node": "^1.16.0",
     "@remix-run/react": "^1.16.0",
     "@vercel/remix": "^1.16.0",
+    "@yimura/scraper": "^1.2.4",
     "clsx": "^1.2.1",
     "isbot": "^3.6.10",
     "lucide-react": "^0.214.0",

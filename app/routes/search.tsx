@@ -2,18 +2,14 @@ import { json, type LoaderArgs, type TypedResponse } from "@remix-run/node"
 import { useFetcher } from "@remix-run/react"
 import { useEffect } from "react"
 import { useEffectEvent } from "~/helpers/use-effect-event"
-import {
-  searchYouTube,
-  type SearchResult,
-  type YouTubeResult,
-} from "~/youtube.server"
+import { searchYouTube, type Video, type YouTubeResult } from "~/youtube.server"
 
 export async function loader({
   request,
-}: LoaderArgs): Promise<TypedResponse<YouTubeResult<SearchResult>>> {
+}: LoaderArgs): Promise<TypedResponse<YouTubeResult<Video[]>>> {
   const url = new URL(request.url)
   const query = url.searchParams.get("query")?.trim()
-  if (!query) return json({ data: { items: [] } })
+  if (!query) return json({ data: [] })
   return json(await searchYouTube(query))
 }
 

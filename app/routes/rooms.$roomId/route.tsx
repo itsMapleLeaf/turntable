@@ -179,34 +179,36 @@ function AddSongForm() {
         <p>Search failed: {searchFetcher.error}</p>
       )}
 
-      {searchFetcher.state === "success" && (
+      {searchFetcher.state === "success" && searchFetcher.data.length > 0 && (
         <ul className="border border-white/10 rounded-lg divide-y divide-white/10 max-h-80 overflow-y-scroll">
-          {searchFetcher.data.items.map((result) => (
-            <li key={result.id.videoId}>
+          {searchFetcher.data.map((video) => (
+            <li key={video.id}>
               <button
                 type="button"
-                className="button border-0 rounded-none w-full flex items-center gap-2 text-left"
+                className="button border-0 rounded-none w-full flex items-center gap-2 text-left origin-left"
                 onClick={() => {
-                  submit(
-                    { url: `https://youtube.com/watch?v=${result.id.videoId}` },
-                    { method: "POST" },
-                  )
+                  submit({ url: video.link }, { method: "POST" })
                 }}
               >
                 <img
-                  src={result.snippet.thumbnails.default.url}
+                  src={video.thumbnail}
                   alt=""
                   className="w-12 aspect-square object-cover"
                 />
-                <span
-                  dangerouslySetInnerHTML={{
-                    __html: `${result.snippet.title} by ${result.snippet.channelTitle}`,
-                  }}
-                />
+                <div className="leading-none">
+                  <div className="text-sm opacity-75">
+                    {video.channel.name} &bull; {video.duration_raw}
+                  </div>
+                  <div>{video.title}</div>
+                </div>
               </button>
             </li>
           ))}
         </ul>
+      )}
+
+      {searchFetcher.state === "success" && searchFetcher.data.length === 0 && (
+        <p>{`No results found for "${searchInput}"`}</p>
       )}
 
       {!pending && error ? (

@@ -1,31 +1,7 @@
-import { z } from "zod"
-import { raise } from "./helpers/raise"
+import { Scraper, type Video } from "@yimura/scraper"
+export { type Video } from "@yimura/scraper"
 
-const apiKey =
-  process.env.YOUTUBE_API_KEY ?? raise("YOUTUBE_API_KEY not defined")
-
-const searchResultSchema = z.object({
-  items: z.array(
-    z.object({
-      id: z.object({ videoId: z.string() }),
-      snippet: z.object({
-        title: z.string(),
-        channelTitle: z.string(),
-        thumbnails: z.object({
-          default: z.object({ url: z.string() }),
-        }),
-      }),
-    }),
-  ),
-})
-export type SearchResult = z.infer<typeof searchResultSchema>
-
-const errorSchema = z.object({
-  error: z.object({
-    code: z.number(),
-    message: z.string(),
-  }),
-})
+const yt = new Scraper()
 
 export type YouTubeResult<T> =
   | { data: T; error?: null }
@@ -33,24 +9,10 @@ export type YouTubeResult<T> =
 
 export async function searchYouTube(
   query: string,
-): Promise<YouTubeResult<SearchResult>> {
+): Promise<YouTubeResult<Video[]>> {
   try {
-    const youtubeSearchUrl = `https://youtube.googleapis.com/youtube/v3/search?part=snippet&maxResults=5&q=${query}&type=video&key=${apiKey}`
-
-    const response = await fetch(youtubeSearchUrl)
-    if (!response.ok) {
-      const error = errorSchema.safeParse(await response.json())
-      return {
-        error: error.success
-          ? `${error.data.error.code} ${error.data.error.message}`
-          : `${response.status} ${response.statusText}`,
-      }
-    }
-
-    const result = searchResultSchema.safeParse(await response.json())
-    return result.success
-      ? { data: result.data }
-      : { error: result.error.message }
+    const results = await yt.search(query, { searchType: "VIDEO" })
+    return { data: results.videos }
   } catch (error) {
     return {
       error:
