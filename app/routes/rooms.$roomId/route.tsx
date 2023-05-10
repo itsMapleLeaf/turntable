@@ -1,15 +1,18 @@
 import {
   Form,
   useActionData,
+  useFetcher,
   useLoaderData,
   useNavigation,
+  useSubmit,
 } from "@remix-run/react"
 import { json, redirect, type ActionArgs, type LoaderArgs } from "@vercel/remix"
 import { PlayCircle, Plus } from "lucide-react"
-import { useCallback, useEffect, useRef } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { zfd } from "zod-form-data"
 import { Button } from "~/components/button"
 import { raise } from "~/helpers/raise"
+import { type loader as searchLoader } from "~/routes/search"
 import { vinylApi } from "~/vinyl/vinyl-api.server"
 import { getSessionToken } from "~/vinyl/vinyl-session"
 import { type Room } from "~/vinyl/vinyl-types"
@@ -133,17 +136,40 @@ function AddSongForm() {
   const navigation = useNavigation()
   const pending = navigation.state === "submitting"
   const formRef = useRef<HTMLFormElement>(null)
+  const [searchInput, setSearchInput] = useState("")
+  const submit = useSubmit()
+  const fetcher = useFetcher<typeof searchLoader>()
+  const searchResults =
+    (fetcher.data && "data" in fetcher.data && fetcher.data.data.items) || []
+
+  const doSearch = useMemo(() => {
+    return debounce((query: string) => {
+      fetcher.load(`/search?query=${encodeURIComponent(query)}`)
+    }, 500)
+  }, [fetcher])
 
   useEffect(() => {
     if (!pending && !error) {
       formRef.current?.reset()
+      setSearchInput("")
     }
   }, [error, pending])
 
   return (
     <Form method="POST" className="flex flex-col gap-3" ref={formRef}>
       <div className="flex flex-row gap-2">
-        <input name="url" placeholder="Stream URL" className="input" required />
+        <input
+          name="url"
+          placeholder="Stream URL"
+          className="input"
+          required
+          disabled={pending}
+          value={searchInput}
+          onChange={(event) => {
+            setSearchInput(event.currentTarget.value)
+            doSearch(event.currentTarget.value)
+          }}
+        />
         <Button
           pending={pending}
           label="Add"
@@ -151,9 +177,51 @@ function AddSongForm() {
           iconElement={<Plus />}
         />
       </div>
+
+      {searchInput && searchResults.length > 0 && (
+        <ul className="border border-white/10 rounded-lg divide-y divide-white/10 max-h-80 overflow-y-scroll">
+          {searchResults.map((result) => (
+            <li key={result.id.videoId}>
+              <button
+                type="button"
+                className="button border-0 rounded-none w-full flex items-center gap-2 text-left"
+                onClick={() => {
+                  submit(
+                    { url: `https://youtube.com/watch?v=${result.id.videoId}` },
+                    { method: "POST" },
+                  )
+                }}
+              >
+                <img
+                  src={result.snippet.thumbnails.default.url}
+                  alt=""
+                  className="w-12 aspect-square object-cover"
+                />
+                <span
+                  dangerouslySetInnerHTML={{
+                    __html: `${result.snippet.title} by ${result.snippet.channelTitle}`,
+                  }}
+                />
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+
       {!pending && error ? (
         <p className="text-sm text-error-400">{error}</p>
       ) : null}
     </Form>
   )
+}
+
+function debounce<Args extends unknown[]>(
+  fn: (...args: Args) => void,
+  delay: number,
+) {
+  let timeout: NodeJS.Timeout | number
+  return (...args: Args) => {
+    clearTimeout(timeout)
+    timeout = setTimeout(fn, delay, ...args)
+  }
 }
