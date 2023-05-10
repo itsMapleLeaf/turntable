@@ -186,6 +186,7 @@ function AddSongForm() {
               <button
                 type="button"
                 className="button border-0 rounded-none w-full flex items-center gap-2 text-left origin-left"
+                disabled={pending}
                 onClick={() => {
                   submit({ url: video.link }, { method: "POST" })
                 }}
