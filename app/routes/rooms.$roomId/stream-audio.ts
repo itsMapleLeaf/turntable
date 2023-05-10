@@ -5,6 +5,14 @@ let audio: HTMLAudioElement | undefined
 function getStreamAudioElement(): HTMLAudioElement {
   if (!audio) {
     const element = document.createElement("audio")
+
+    // ensure it continues playing if it ends
+    element.addEventListener("ended", () => {
+      element.play().catch((error) => {
+        console.error("Failed to play audio:", error)
+      })
+    })
+
     document.body.append(element)
     audio = element
   }
@@ -14,7 +22,9 @@ function getStreamAudioElement(): HTMLAudioElement {
 export function playStream(url: string) {
   const audio = getStreamAudioElement()
   audio.src = url
-  return audio.play()
+  audio.play().catch((error) => {
+    console.error("Failed to play audio:", error)
+  })
 }
 
 export function stopStream() {

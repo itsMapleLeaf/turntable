@@ -73,9 +73,7 @@ function RoomPageContent({ room }: { room: Room }) {
   const playing = useStreamPlaying()
 
   const play = useCallback(() => {
-    playStream(`/rooms/${room.id}/stream`).catch((error) => {
-      console.error("Failed to play audio:", error)
-    })
+    playStream(`/rooms/${room.id}/stream`)
   }, [room.id])
 
   useEffect(() => {
