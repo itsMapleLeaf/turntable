@@ -1,4 +1,5 @@
 import { createContext, useContext, useEffect, useState } from "react"
+import { type Nullish } from "~/helpers/types"
 import { vinylSocket } from "~/vinyl/vinyl-socket"
 import { type Room, type Track, type User } from "~/vinyl/vinyl-types"
 
@@ -15,7 +16,7 @@ export function RoomStateProvider({
   const [members, setMembers] = useState<ReadonlyMap<string, User>>(
     new Map(room.connections.map((user) => [user.id, user])),
   )
-  const [track, setTrack] = useState<Track>()
+  const [track, setTrack] = useState(room.currentTrack)
   const [songProgress, setSongProgress] = useState(0)
 
   useEffect(() => {
@@ -59,7 +60,7 @@ export function RoomStateProvider({
 const MembersContext = createContext<ReadonlyMap<string, User>>(new Map())
 export const useRoomMembers = () => useContext(MembersContext)
 
-const TrackContext = createContext<Track | undefined>(undefined)
+const TrackContext = createContext<Nullish<Track>>(undefined)
 export const useRoomTrack = () => useContext(TrackContext)
 
 const SongProgressContext = createContext(0)
