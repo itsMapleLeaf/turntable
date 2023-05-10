@@ -160,7 +160,7 @@ function AddSongForm() {
       <div className="flex flex-row gap-2">
         <input
           name="url"
-          placeholder="Stream URL"
+          placeholder="Search or enter song URL"
           className="input"
           required
           disabled={pending}
