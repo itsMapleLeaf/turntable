@@ -33,7 +33,7 @@
   }
 
   .input {
-    @apply w-full min-w-0 flex-1 rounded-md border border-white/10 bg-transparent/50 px-3 py-2 shadow-inner shadow-black/50 transition;
+    @apply w-full min-w-0 flex-1 rounded-md border border-white/10 bg-transparent/50 px-3 py-2 shadow-inner shadow-black/50 transition disabled:opacity-50;
   }
 
   .panel {
