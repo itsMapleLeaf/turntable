@@ -7,7 +7,7 @@ import {
   useLoaderData,
 } from "@remix-run/react"
 import type { LinksFunction, LoaderArgs } from "@vercel/remix"
-import background from "./assets/background.webp"
+import background from "./assets/background.jpg"
 import { Header } from "./components/header"
 import style from "./style.css"
 import { vinylApi } from "./vinyl/vinyl-api.server"
@@ -25,7 +25,7 @@ export default function Root() {
   return (
     <html
       lang="en"
-      className="break-words bg-center text-gray-100 bg-blend-darken [word-break:break-word] overflow-x-clip"
+      className="break-words bg-center text-gray-100 bg-blend-darken [word-break:break-word] overflow-x-clip bg-cover selection:bg-accent-600/50"
       style={{ backgroundImage: `url(${background})` }}
     >
       <head>
