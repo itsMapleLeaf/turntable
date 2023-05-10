@@ -145,15 +145,12 @@ export function vinylApi(request: Request) {
     },
 
     async getRoomStream(roomId: string, token: string, signal: AbortSignal) {
-      return fetch(
-        new URL(`rooms/${roomId.replace(/^room:/, "")}/stream`, apiUrl),
-        {
-          signal,
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+      return fetch(new URL(`rooms/${roomId}/stream`, apiUrl), {
+        signal,
+        headers: {
+          Authorization: `Bearer ${token}`,
         },
-      )
+      })
     },
 
     async submitSong(
