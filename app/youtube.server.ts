@@ -18,7 +18,7 @@ const searchResultSchema = z.object({
     }),
   ),
 })
-type SearchResult = z.infer<typeof searchResultSchema>
+export type SearchResult = z.infer<typeof searchResultSchema>
 
 const errorSchema = z.object({
   error: z.object({
@@ -28,8 +28,8 @@ const errorSchema = z.object({
 })
 
 export type YouTubeResult<T> =
-  | { data: T; error?: never }
-  | { data?: never; error: string }
+  | { data: T; error?: null }
+  | { data?: null; error: string }
 
 export async function searchYouTube(
   query: string,

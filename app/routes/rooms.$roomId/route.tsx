@@ -1,18 +1,17 @@
 import {
   Form,
   useActionData,
-  useFetcher,
   useLoaderData,
   useNavigation,
   useSubmit,
 } from "@remix-run/react"
 import { json, redirect, type ActionArgs, type LoaderArgs } from "@vercel/remix"
 import { PlayCircle, Plus } from "lucide-react"
-import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import { zfd } from "zod-form-data"
 import { Button } from "~/components/button"
 import { raise } from "~/helpers/raise"
-import { type loader as searchLoader } from "~/routes/search"
+import { useSearchFetcher } from "~/routes/search"
 import { vinylApi } from "~/vinyl/vinyl-api.server"
 import { getSessionToken } from "~/vinyl/vinyl-session"
 import { type Room } from "~/vinyl/vinyl-types"
@@ -133,20 +132,19 @@ function RoomPageContent({ room }: { room: Room }) {
 
 function AddSongForm() {
   const { error } = useActionData<typeof action>() ?? {}
+
   const navigation = useNavigation()
   const pending = navigation.state === "submitting"
-  const formRef = useRef<HTMLFormElement>(null)
-  const [searchInput, setSearchInput] = useState("")
-  const submit = useSubmit()
-  const fetcher = useFetcher<typeof searchLoader>()
-  const searchResults =
-    (fetcher.data && "data" in fetcher.data && fetcher.data.data.items) || []
 
-  const doSearch = useMemo(() => {
-    return debounce((query: string) => {
-      fetcher.load(`/search?query=${encodeURIComponent(query)}`)
-    }, 500)
-  }, [fetcher])
+  const [searchInput, setSearchInput] = useState("")
+  const debouncedSearchInput = useDebouncedValue(
+    searchInput,
+    searchInput.trim() ? 500 : 0,
+  )
+  const searchFetcher = useSearchFetcher(debouncedSearchInput)
+
+  const submit = useSubmit()
+  const formRef = useRef<HTMLFormElement>(null)
 
   useEffect(() => {
     if (!pending && !error) {
@@ -165,10 +163,7 @@ function AddSongForm() {
           required
           disabled={pending}
           value={searchInput}
-          onChange={(event) => {
-            setSearchInput(event.currentTarget.value)
-            doSearch(event.currentTarget.value)
-          }}
+          onChange={(event) => setSearchInput(event.currentTarget.value)}
         />
         <Button
           pending={pending}
@@ -178,9 +173,15 @@ function AddSongForm() {
         />
       </div>
 
-      {searchInput && searchResults.length > 0 && (
+      {searchFetcher.state === "loading" && <p>Loading search results...</p>}
+
+      {searchFetcher.state === "error" && (
+        <p>Search failed: {searchFetcher.error}</p>
+      )}
+
+      {searchFetcher.state === "success" && (
         <ul className="border border-white/10 rounded-lg divide-y divide-white/10 max-h-80 overflow-y-scroll">
-          {searchResults.map((result) => (
+          {searchFetcher.data.items.map((result) => (
             <li key={result.id.videoId}>
               <button
                 type="button"
@@ -215,13 +216,11 @@ function AddSongForm() {
   )
 }
 
-function debounce<Args extends unknown[]>(
-  fn: (...args: Args) => void,
-  delay: number,
-) {
-  let timeout: NodeJS.Timeout | number
-  return (...args: Args) => {
-    clearTimeout(timeout)
-    timeout = setTimeout(fn, delay, ...args)
-  }
+function useDebouncedValue<T>(value: T, delay: number) {
+  const [debouncedValue, setDebouncedValue] = useState(value)
+  useEffect(() => {
+    const handler = setTimeout(() => setDebouncedValue(value), delay)
+    return () => clearTimeout(handler)
+  }, [value, delay])
+  return debouncedValue
 }
