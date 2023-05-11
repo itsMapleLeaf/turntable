@@ -10,6 +10,25 @@
   :focus-visible {
     @apply ring-2 ring-accent-700;
   }
+
+  ::-webkit-scrollbar {
+    @apply w-2;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-black/50;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-white/25;
+  }
+  ::-webkit-scrollbar-thumb:active {
+    @apply bg-white/50;
+  }
+
+  ::-webkit-scrollbar-corner {
+    @apply bg-black;
+  }
 }
 
 @layer components {
