@@ -194,7 +194,7 @@ function SearchResults({
 }) {
   if (
     !fetcher.data ||
-    (fetcher.data.data?.length === 0 && fetcher.type === "normalLoad")
+    (fetcher.data.data?.length === 0 && fetcher.state === "loading")
   ) {
     return <p className="p-3">{`Loading results for "${query}"...`}</p>
   }
