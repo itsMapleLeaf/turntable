@@ -13,7 +13,7 @@ export async function searchYouTube(
 ): Promise<YouTubeResult<Video[]>> {
   try {
     const results = await Promise.race([
-      yt.search(query, { searchType: "VIDEO" }),
+      yt.search(query, { searchType: "VIDEO", language: "en" }),
       delay(10_000).then(() => {
         throw new Error("Timed out")
       }),
