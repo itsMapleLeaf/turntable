@@ -158,10 +158,7 @@ export function vinylApi(request: Request) {
     },
 
     getRoomStreamUrl(roomId: string, token: string) {
-      return new URL(
-        `/v1/rooms/${roomId}/stream?token=${token}&nocache=${Date.now()}`,
-        apiUrl,
-      )
+      return new URL(`/v1/rooms/${roomId}/stream?token=${token}`, apiUrl)
     },
 
     getGatewayUrl(token: string) {

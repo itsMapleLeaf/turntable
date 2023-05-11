@@ -70,7 +70,7 @@ function RoomPageContent({ room }: { room: Room }) {
   const playing = useStreamPlaying()
 
   const play = useCallback(() => {
-    playStream(streamUrl)
+    playStream(`${streamUrl}&nocache=${Date.now()}`)
   }, [streamUrl])
 
   useEffect(() => {
