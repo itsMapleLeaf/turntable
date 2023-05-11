@@ -8,6 +8,10 @@ function getStreamAudioElement(): HTMLAudioElement {
 
     // ensure it continues playing if it ends
     element.addEventListener("ended", () => {
+      const url = new URL(element.currentSrc)
+      url.searchParams.set("nocache", String(Date.now()))
+      element.src = url.href
+
       element.play().catch((error) => {
         console.error("Failed to play audio:", error)
       })
