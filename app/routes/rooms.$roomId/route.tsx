@@ -7,7 +7,7 @@ import {
 } from "@remix-run/react"
 import { json, redirect, type ActionArgs, type LoaderArgs } from "@vercel/remix"
 import { PlayCircle, Plus } from "lucide-react"
-import { useCallback, useEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { zfd } from "zod-form-data"
 import { Button } from "~/components/button"
 import { raise } from "~/helpers/raise"
@@ -135,22 +135,10 @@ function AddSongForm() {
   const pending = navigation.state === "submitting"
 
   const [searchInput, setSearchInput] = useState("")
-  const debouncedSearchInput = useDebouncedValue(
-    searchInput,
-    searchInput.trim() ? 500 : 0,
-  )
-
-  const formRef = useRef<HTMLFormElement>(null)
-
-  useEffect(() => {
-    if (!pending && !error) {
-      formRef.current?.reset()
-      setSearchInput("")
-    }
-  }, [error, pending])
+  const debouncedSearchInput = useDebouncedValue(searchInput, 500)
 
   return (
-    <Form method="POST" className="divide-y divide-white/10" ref={formRef}>
+    <Form method="POST" className="divide-y divide-white/10">
       <div className="flex flex-row gap-2 p-3">
         <input
           name="url"
@@ -160,6 +148,7 @@ function AddSongForm() {
           disabled={pending}
           value={searchInput}
           onChange={(event) => setSearchInput(event.currentTarget.value)}
+          onFocus={(event) => event.currentTarget.select()}
         />
         <Button
           pending={pending}
