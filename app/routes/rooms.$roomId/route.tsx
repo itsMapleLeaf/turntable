@@ -80,30 +80,29 @@ function RoomPageContent({ room }: { room: Room }) {
 
   return (
     <RoomStateProvider room={room} socketUrl={socketUrl}>
-      <div className="container flex-1 py-4">
-        <main className="panel flex flex-col border divide-y divide-white/10">
+      <main className="container flex-1 py-4 grid gap-4 content-start">
+        <section className="panel flex flex-col border divide-y divide-white/10">
           <div className="flex items-center p-4">
             <h1 className="flex-1 text-2xl font-light">{room.name}</h1>
             <RoomMembers />
           </div>
           <AddSongForm />
-          <ul className="divide-y divide-white/10">
-            {songs.map((song) => (
-              <li key={song.id} className="flex flex-row gap-3 p-3">
-                <div className="h-12 w-12 bg-accent-400" />
-                <div className="flex-1 leading-5">
-                  <h2 className="text-lg font-light">
-                    SongListItemTitleContent
-                  </h2>
-                  <p className="text-sm text-gray-400">
-                    SongListItemAddedByContent
-                  </p>
-                </div>
-              </li>
-            ))}
-          </ul>
-        </main>
-      </div>
+        </section>
+
+        <ul className="panel border divide-y divide-white/10">
+          {songs.map((song) => (
+            <li key={song.id} className="flex flex-row gap-3 p-3">
+              <div className="h-12 w-12 bg-accent-400" />
+              <div className="flex-1 leading-5">
+                <h2 className="text-lg font-light">SongListItemTitleContent</h2>
+                <p className="text-sm text-gray-400">
+                  SongListItemAddedByContent
+                </p>
+              </div>
+            </li>
+          ))}
+        </ul>
+      </main>
 
       <footer className="panel sticky bottom-0">
         <ProgressBar />
