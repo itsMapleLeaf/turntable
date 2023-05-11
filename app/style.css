@@ -14,7 +14,7 @@
 
 @layer components {
   .active-press {
-    @apply transition active:scale-95 active:duration-0;
+    @apply transition active:scale-[0.97] active:duration-0;
   }
 
   .container {
@@ -26,7 +26,7 @@
   }
 
   .button {
-    @apply link active-press flex flex-row items-center gap-2 rounded-md border border-white/10 p-3 leading-none hover:border-accent-700 disabled:opacity-50;
+    @apply link active-press flex flex-row items-center gap-2 rounded-md border border-white/10 p-3 leading-none hover:border-accent-700 disabled:opacity-50 hover:bg-black/25;
   }
   .button > svg {
     @apply h-5 w-5;

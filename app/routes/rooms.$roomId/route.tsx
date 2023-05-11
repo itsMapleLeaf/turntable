@@ -86,17 +86,15 @@ function RoomPageContent({ room }: { room: Room }) {
   return (
     <RoomStateProvider room={room} socketUrl={socketUrl}>
       <div className="container flex-1 py-4">
-        <main className="panel flex flex-col gap-4 border p-4">
-          <div className="flex items-center">
+        <main className="panel flex flex-col border divide-y divide-white/10">
+          <div className="flex items-center p-4">
             <h1 className="flex-1 text-2xl font-light">{room.name}</h1>
             <RoomMembers />
           </div>
-          <hr className="-mx-4 border-white/10" />
           <AddSongForm />
-          <hr className="-mx-4 border-white/10" />
-          <ul className="flex flex-col gap-4">
+          <ul className="divide-y divide-white/10">
             {songs.map((song) => (
-              <li key={song.id} className="flex flex-row gap-3">
+              <li key={song.id} className="flex flex-row gap-3 p-3">
                 <div className="h-12 w-12 bg-accent-400" />
                 <div className="flex-1 leading-5">
                   <h2 className="text-lg font-light">
@@ -152,8 +150,8 @@ function AddSongForm() {
   }, [error, pending])
 
   return (
-    <Form method="POST" className="flex flex-col gap-3" ref={formRef}>
-      <div className="flex flex-row gap-2">
+    <Form method="POST" className="divide-y divide-white/10" ref={formRef}>
+      <div className="flex flex-row gap-2 p-3">
         <input
           name="url"
           placeholder="Search or enter song URL"
@@ -190,19 +188,21 @@ function SearchResults({ query }: { query: string }) {
 
   return (
     <>
-      {searchFetcher.state === "loading" && <p>Loading search results...</p>}
+      {searchFetcher.state === "loading" && (
+        <p className="p-3">Loading search results...</p>
+      )}
 
       {searchFetcher.state === "loaded" && searchFetcher.error && (
-        <p>Search failed: {searchFetcher.error}</p>
+        <p className="p-3">Search failed: {searchFetcher.error}</p>
       )}
 
       {searchFetcher.state === "loaded" && !!searchFetcher.data?.length && (
-        <ul className="border border-white/10 rounded-lg divide-y divide-white/10 max-h-80 overflow-y-scroll">
+        <ul className="divide-y divide-white/10 max-h-80 overflow-y-scroll">
           {searchFetcher.data.map((video) => (
             <li key={video.id}>
               <button
                 type="button"
-                className="button border-0 rounded-none w-full flex items-center gap-2 text-left origin-left"
+                className="button border-0 rounded-none w-full flex items-center gap-3 text-left origin-left"
                 disabled={pending}
                 onClick={() => {
                   submit({ url: video.link }, { method: "POST" })
@@ -211,7 +211,7 @@ function SearchResults({ query }: { query: string }) {
                 <img
                   src={video.thumbnail}
                   alt=""
-                  className="w-12 aspect-square object-cover"
+                  className="w-12 aspect-square object-cover border border-white/10 rounded"
                 />
                 <div className="leading-none">
                   <div className="text-sm opacity-75">
@@ -226,7 +226,7 @@ function SearchResults({ query }: { query: string }) {
       )}
 
       {searchFetcher.state === "loaded" && !searchFetcher.data?.length && (
-        <p>{`No results found for "${query}"`}</p>
+        <p className="p-3">{`No results found for "${query}"`}</p>
       )}
     </>
   )
