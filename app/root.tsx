@@ -9,8 +9,8 @@ import {
 import type { LinksFunction, LoaderArgs } from "@vercel/remix"
 import background from "./assets/background.jpg"
 import { Header } from "./components/header"
+import { vinylApi } from "./data/vinyl-api.server"
 import style from "./style.css"
-import { vinylApi } from "./vinyl/vinyl-api.server"
 
 export const links: LinksFunction = () => [{ rel: "stylesheet", href: style }]
 

@@ -3,7 +3,7 @@ import { json, redirect, type ActionArgs, type LoaderArgs } from "@vercel/remix"
 import { zfd } from "zod-form-data"
 import { FormLayout } from "~/components/form-layout"
 import { Label } from "~/components/label"
-import { vinylApi } from "~/vinyl/vinyl-api.server"
+import { vinylApi } from "~/data/vinyl-api.server"
 
 export async function loader({ request }: LoaderArgs) {
   const user = await vinylApi(request).getUser()

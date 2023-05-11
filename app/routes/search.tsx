@@ -1,8 +1,12 @@
 import { json, type LoaderArgs, type TypedResponse } from "@remix-run/node"
 import { useFetcher } from "@remix-run/react"
 import { useEffect } from "react"
+import {
+  searchYouTube,
+  type Video,
+  type YouTubeResult,
+} from "~/data/youtube.server"
 import { useEffectEvent } from "~/helpers/use-effect-event"
-import { searchYouTube, type Video, type YouTubeResult } from "~/youtube.server"
 
 export async function loader({
   request,

@@ -1,5 +1,5 @@
 import { redirect } from "@vercel/remix"
-import { destroySession } from "~/vinyl/vinyl-session"
+import { destroySession } from "~/data/vinyl-session"
 
 export async function loader() {
   return redirect("/sign-in", {

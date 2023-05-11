@@ -1,7 +1,7 @@
 import { Link } from "@remix-run/react"
 import { Disc } from "lucide-react"
+import { type User } from "~/data/vinyl-types"
 import { type Nullish } from "~/helpers/types"
-import { type User } from "~/vinyl/vinyl-types"
 import { HeaderMenu } from "./header-menu"
 
 export function Header({ user }: { user: Nullish<User> }) {

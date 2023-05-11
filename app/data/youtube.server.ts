@@ -1,5 +1,5 @@
 import { Scraper, type Video } from "@yimura/scraper"
-import { delay } from "./helpers/delay"
+import { delay } from "../helpers/delay"
 export { type Video } from "@yimura/scraper"
 
 const yt = new Scraper()

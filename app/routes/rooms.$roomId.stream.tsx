@@ -1,7 +1,7 @@
 import { type LoaderArgs } from "@remix-run/node"
+import { vinylApi } from "~/data/vinyl-api.server"
+import { getSessionToken } from "~/data/vinyl-session"
 import { raise } from "~/helpers/raise"
-import { vinylApi } from "~/vinyl/vinyl-api.server"
-import { getSessionToken } from "~/vinyl/vinyl-session"
 
 export async function loader({ request, params }: LoaderArgs) {
   const token = await getSessionToken(request)

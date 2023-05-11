@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useState } from "react"
+import { vinylSocket } from "~/data/vinyl-socket"
+import { type Room, type Track, type User } from "~/data/vinyl-types"
 import { type Nullish } from "~/helpers/types"
-import { vinylSocket } from "~/vinyl/vinyl-socket"
-import { type Room, type Track, type User } from "~/vinyl/vinyl-types"
 
 export function RoomStateProvider({
   room,
