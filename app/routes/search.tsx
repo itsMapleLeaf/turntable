@@ -25,3 +25,5 @@ export function useSearchFetcher(queryArg: string) {
 
   return fetcher
 }
+
+export type SearchFetcher = ReturnType<typeof useSearchFetcher>

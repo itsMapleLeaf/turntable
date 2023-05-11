@@ -4,8 +4,9 @@ import { PlayCircle, Plus } from "lucide-react"
 import { useCallback, useEffect, useState } from "react"
 import { zfd } from "zod-form-data"
 import { Button } from "~/components/button"
+import { Spinner } from "~/components/spinner"
 import { raise } from "~/helpers/raise"
-import { useSearchFetcher } from "~/routes/search"
+import { useSearchFetcher, type SearchFetcher } from "~/routes/search"
 import { vinylApi } from "~/vinyl/vinyl-api.server"
 import { getSessionToken } from "~/vinyl/vinyl-session"
 import { type Room } from "~/vinyl/vinyl-types"
@@ -126,60 +127,72 @@ function AddSongForm() {
   const [searchInput, setSearchInput] = useState("")
   const debouncedSearchInput = useDebouncedValue(searchInput, 500)
 
-  const fetcher = useFetcher<typeof action>()
-  const pending = fetcher.state === "submitting"
+  const trackSubmitFetcher = useFetcher<typeof action>()
+  const trackSubmitPending = trackSubmitFetcher.state === "submitting"
+
+  const searchFetcher = useSearchFetcher(debouncedSearchInput)
 
   return (
-    <fetcher.Form method="POST" className="divide-y divide-white/10">
+    <trackSubmitFetcher.Form method="POST" className="divide-y divide-white/10">
       <div className="flex flex-row gap-2 p-3">
-        <input
-          name="url"
-          placeholder="Search or enter song URL"
-          className="input"
-          required
-          disabled={pending}
-          value={searchInput}
-          onChange={(event) => setSearchInput(event.currentTarget.value)}
-          onFocus={(event) => event.currentTarget.select()}
-        />
+        <div className="flex-1 relative">
+          <input
+            name="url"
+            placeholder="Search or enter song URL"
+            className="input h-full"
+            required
+            disabled={trackSubmitPending}
+            value={searchInput}
+            onChange={(event) => setSearchInput(event.currentTarget.value)}
+            onFocus={(event) => event.currentTarget.select()}
+          />
+          <div
+            data-visible={
+              searchFetcher.state === "loading" ||
+              trackSubmitPending ||
+              undefined
+            }
+            className="absolute right-0 inset-y-0 px-3 flex items-center justify-center data-[visible]:opacity-100 opacity-0 transition-opacity pointer-events-none"
+          >
+            <Spinner />
+          </div>
+        </div>
         <Button
-          pending={pending}
+          pending={trackSubmitPending}
           label="Add"
           pendingLabel="Adding..."
           iconElement={<Plus />}
         />
       </div>
 
-      <SearchResults
-        query={debouncedSearchInput}
-        pending={pending}
-        onSubmit={(url) => {
-          fetcher.submit({ url }, { method: "POST" })
-        }}
-      />
+      {debouncedSearchInput && (
+        <SearchResults
+          query={debouncedSearchInput}
+          fetcher={searchFetcher}
+          onSubmit={(url) => {
+            trackSubmitFetcher.submit({ url }, { method: "POST" })
+          }}
+        />
+      )}
 
-      {!pending && fetcher.data?.error ? (
-        <p className="text-sm text-error-400">{fetcher.data?.error}</p>
+      {!trackSubmitPending && trackSubmitFetcher.data?.error ? (
+        <p className="text-sm text-error-400">
+          {trackSubmitFetcher.data?.error}
+        </p>
       ) : null}
-    </fetcher.Form>
+    </trackSubmitFetcher.Form>
   )
 }
 
 function SearchResults({
   query,
-  pending,
+  fetcher,
   onSubmit,
 }: {
   query: string
-  pending: boolean
+  fetcher: SearchFetcher
   onSubmit: (url: string) => void
 }) {
-  const fetcher = useSearchFetcher(query)
-
-  if (!query) {
-    return null
-  }
-
   if (
     !fetcher.data ||
     (fetcher.data.data?.length === 0 && fetcher.type === "normalLoad")
@@ -202,7 +215,7 @@ function SearchResults({
           <button
             type="button"
             className="button border-0 rounded-none w-full flex items-center gap-3 text-left ring-inset"
-            disabled={pending}
+            disabled={fetcher.state === "submitting"}
             onClick={() => {
               onSubmit(video.link)
             }}
