@@ -1,10 +1,4 @@
-import {
-  Form,
-  useActionData,
-  useLoaderData,
-  useNavigation,
-  useSubmit,
-} from "@remix-run/react"
+import { useFetcher, useLoaderData } from "@remix-run/react"
 import { json, redirect, type ActionArgs, type LoaderArgs } from "@vercel/remix"
 import { PlayCircle, Plus } from "lucide-react"
 import { useCallback, useEffect, useState } from "react"
@@ -129,16 +123,14 @@ function RoomPageContent({ room }: { room: Room }) {
 }
 
 function AddSongForm() {
-  const { error } = useActionData<typeof action>() ?? {}
-
-  const navigation = useNavigation()
-  const pending = navigation.state === "submitting"
-
   const [searchInput, setSearchInput] = useState("")
   const debouncedSearchInput = useDebouncedValue(searchInput, 500)
 
+  const fetcher = useFetcher<typeof action>()
+  const pending = fetcher.state === "submitting"
+
   return (
-    <Form method="POST" className="divide-y divide-white/10">
+    <fetcher.Form method="POST" className="divide-y divide-white/10">
       <div className="flex flex-row gap-2 p-3">
         <input
           name="url"
@@ -158,66 +150,78 @@ function AddSongForm() {
         />
       </div>
 
-      <SearchResults query={debouncedSearchInput} />
+      <SearchResults
+        query={debouncedSearchInput}
+        pending={pending}
+        onSubmit={(url) => {
+          fetcher.submit({ url }, { method: "POST" })
+        }}
+      />
 
-      {!pending && error ? (
-        <p className="text-sm text-error-400">{error}</p>
+      {!pending && fetcher.data?.error ? (
+        <p className="text-sm text-error-400">{fetcher.data?.error}</p>
       ) : null}
-    </Form>
+    </fetcher.Form>
   )
 }
 
-function SearchResults({ query }: { query: string }) {
-  const searchFetcher = useSearchFetcher(query)
+function SearchResults({
+  query,
+  pending,
+  onSubmit,
+}: {
+  query: string
+  pending: boolean
+  onSubmit: (url: string) => void
+}) {
+  const fetcher = useSearchFetcher(query)
 
-  const navigation = useNavigation()
-  const pending = navigation.state === "submitting"
+  if (!query) {
+    return null
+  }
 
-  const submit = useSubmit()
+  if (
+    !fetcher.data ||
+    (fetcher.data.data?.length === 0 && fetcher.type === "normalLoad")
+  ) {
+    return <p className="p-3">{`Loading results for "${query}"...`}</p>
+  }
+
+  if (!fetcher.data.data) {
+    return <p className="p-3">{fetcher.data.error}</p>
+  }
+
+  if (fetcher.data.data.length === 0) {
+    return <p className="p-3">{`No results found for "${query}"`}</p>
+  }
 
   return (
-    <>
-      {searchFetcher.state === "loading" && (
-        <p className="p-3">Loading search results...</p>
-      )}
-
-      {searchFetcher.state === "loaded" && searchFetcher.error && (
-        <p className="p-3">Search failed: {searchFetcher.error}</p>
-      )}
-
-      {searchFetcher.state === "loaded" && !!searchFetcher.data?.length && (
-        <ul className="divide-y divide-white/10 max-h-80 overflow-y-scroll">
-          {searchFetcher.data.map((video) => (
-            <li key={video.id}>
-              <button
-                type="button"
-                className="button border-0 rounded-none w-full flex items-center gap-3 text-left origin-left"
-                disabled={pending}
-                onClick={() => {
-                  submit({ url: video.link }, { method: "POST" })
-                }}
-              >
-                <img
-                  src={video.thumbnail}
-                  alt=""
-                  className="w-12 aspect-square object-cover border border-white/10 rounded"
-                />
-                <div className="leading-none">
-                  <div className="text-sm opacity-75">
-                    {video.channel.name} &bull; {video.duration_raw}
-                  </div>
-                  <div>{video.title}</div>
-                </div>
-              </button>
-            </li>
-          ))}
-        </ul>
-      )}
-
-      {searchFetcher.state === "loaded" && !searchFetcher.data?.length && (
-        <p className="p-3">{`No results found for "${query}"`}</p>
-      )}
-    </>
+    <ul className="divide-y divide-white/10 max-h-80 overflow-y-scroll">
+      {fetcher.data.data.map((video) => (
+        <li key={video.id}>
+          <button
+            type="button"
+            className="button border-0 rounded-none w-full flex items-center gap-3 text-left ring-inset"
+            disabled={pending}
+            onClick={() => {
+              onSubmit(video.link)
+            }}
+          >
+            <img
+              src={video.thumbnail}
+              alt=""
+              className="w-12 aspect-square object-cover border border-white/10 rounded"
+            />
+            <div className="leading-none">
+              <div className="text-sm opacity-75">
+                {video.channel.name} &bull; {video.duration_raw}
+              </div>
+              <div>{video.title}</div>
+            </div>
+          </button>
+        </li>
+      ))}
+    </ul>
   )
 }
 

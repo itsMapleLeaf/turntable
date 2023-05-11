@@ -16,7 +16,6 @@ export async function loader({
 export function useSearchFetcher(queryArg: string) {
   const fetcher = useFetcher<typeof loader>()
   const query = queryArg.trim()
-  const result = fetcher.data
 
   const doSearch = useEffectEvent((query: string) => {
     fetcher.load(`/search?query=${query}`)
@@ -24,17 +23,5 @@ export function useSearchFetcher(queryArg: string) {
 
   useEffect(() => doSearch(query), [doSearch, query])
 
-  if (!query) {
-    return { state: "idle", data: undefined, error: undefined } as const
-  }
-
-  if (fetcher.state === "loading") {
-    return { state: "loading", data: undefined, error: undefined } as const
-  }
-
-  if (!result) {
-    return { state: "idle", data: undefined, error: undefined } as const
-  }
-
-  return { state: "loaded", ...result } as const
+  return fetcher
 }
