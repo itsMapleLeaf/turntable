@@ -6,6 +6,10 @@ const apiUrl = new URL(
   "/v1/",
   process.env.VINYL_API_URL || "http://localhost:9050",
 )
+const socketUrl = new URL(
+  "/v1/",
+  process.env.VINYL_SOCKET_URL || "ws://localhost:9050",
+)
 
 type Json = string | number | boolean | null | Json[] | { [key: string]: Json }
 
@@ -151,6 +155,17 @@ export function vinylApi(request: Request) {
           Authorization: `Bearer ${token}`,
         },
       })
+    },
+
+    getRoomStreamUrl(roomId: string, token: string) {
+      return new URL(
+        `/v1/rooms/${roomId}/stream?token=${token}&nocache=${Date.now()}`,
+        apiUrl,
+      )
+    },
+
+    getGatewayUrl(token: string) {
+      return new URL(`/v1/gateway?token=${token}`, socketUrl)
     },
 
     async submitSong(

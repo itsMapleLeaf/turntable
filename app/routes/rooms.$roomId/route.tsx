@@ -27,11 +27,13 @@ const songs = [
 ]
 
 export async function loader({ request, params }: LoaderArgs) {
+  const roomId = params.roomId ?? raise("roomId not defined")
+
   const api = vinylApi(request)
 
   const [user, room, token] = await Promise.all([
     api.getUser(),
-    api.getRoom(params.roomId ?? raise("roomId not defined")),
+    api.getRoom(roomId),
     getSessionToken(request),
   ])
 
@@ -41,10 +43,8 @@ export async function loader({ request, params }: LoaderArgs) {
 
   return json({
     room,
-    socketUrl: new URL(
-      `/v1/gateway?token=${token}`,
-      process.env.VINYL_SOCKET_URL ?? raise("VINYL_SOCKET_URL is not defined"),
-    ).href,
+    streamUrl: api.getRoomStreamUrl(roomId, token).href,
+    socketUrl: api.getGatewayUrl(token).href,
   })
 }
 
@@ -66,12 +66,12 @@ export default function RoomPage() {
 }
 
 function RoomPageContent({ room }: { room: Room }) {
-  const { socketUrl } = useLoaderData<typeof loader>()
+  const { socketUrl, streamUrl } = useLoaderData<typeof loader>()
   const playing = useStreamPlaying()
 
   const play = useCallback(() => {
-    playStream(`/rooms/${room.id}/stream.wav?nocache=${Date.now()}`)
-  }, [room.id])
+    playStream(streamUrl)
+  }, [streamUrl])
 
   useEffect(() => {
     play()
