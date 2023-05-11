@@ -141,9 +141,7 @@ function AddSongForm() {
     searchInput,
     searchInput.trim() ? 500 : 0,
   )
-  const searchFetcher = useSearchFetcher(debouncedSearchInput)
 
-  const submit = useSubmit()
   const formRef = useRef<HTMLFormElement>(null)
 
   useEffect(() => {
@@ -173,13 +171,32 @@ function AddSongForm() {
         />
       </div>
 
+      <SearchResults query={debouncedSearchInput} />
+
+      {!pending && error ? (
+        <p className="text-sm text-error-400">{error}</p>
+      ) : null}
+    </Form>
+  )
+}
+
+function SearchResults({ query }: { query: string }) {
+  const searchFetcher = useSearchFetcher(query)
+
+  const navigation = useNavigation()
+  const pending = navigation.state === "submitting"
+
+  const submit = useSubmit()
+
+  return (
+    <>
       {searchFetcher.state === "loading" && <p>Loading search results...</p>}
 
-      {searchFetcher.state === "error" && (
+      {searchFetcher.state === "loaded" && searchFetcher.error && (
         <p>Search failed: {searchFetcher.error}</p>
       )}
 
-      {searchFetcher.state === "success" && searchFetcher.data.length > 0 && (
+      {searchFetcher.state === "loaded" && !!searchFetcher.data?.length && (
         <ul className="border border-white/10 rounded-lg divide-y divide-white/10 max-h-80 overflow-y-scroll">
           {searchFetcher.data.map((video) => (
             <li key={video.id}>
@@ -208,14 +225,10 @@ function AddSongForm() {
         </ul>
       )}
 
-      {searchFetcher.state === "success" && searchFetcher.data.length === 0 && (
-        <p>{`No results found for "${searchInput}"`}</p>
+      {searchFetcher.state === "loaded" && !searchFetcher.data?.length && (
+        <p>{`No results found for "${query}"`}</p>
       )}
-
-      {!pending && error ? (
-        <p className="text-sm text-error-400">{error}</p>
-      ) : null}
-    </Form>
+    </>
   )
 }
 

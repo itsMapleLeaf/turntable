@@ -36,9 +36,5 @@ export function useSearchFetcher(queryArg: string) {
     return { state: "idle", data: undefined, error: undefined } as const
   }
 
-  if (!result.data) {
-    return { state: "error", data: undefined, error: result.error } as const
-  }
-
-  return { state: "success", data: result.data, error: undefined } as const
+  return { state: "loaded", ...result } as const
 }
