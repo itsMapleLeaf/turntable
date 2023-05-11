@@ -1,4 +1,5 @@
 import { Scraper, type Video } from "@yimura/scraper"
+import { delay } from "./helpers/delay"
 export { type Video } from "@yimura/scraper"
 
 const yt = new Scraper()
@@ -11,7 +12,12 @@ export async function searchYouTube(
   query: string,
 ): Promise<YouTubeResult<Video[]>> {
   try {
-    const results = await yt.search(query, { searchType: "VIDEO" })
+    const results = await Promise.race([
+      yt.search(query, { searchType: "VIDEO" }),
+      delay(10_000).then(() => {
+        throw new Error("Timed out")
+      }),
+    ])
     return { data: results.videos }
   } catch (error) {
     return {
