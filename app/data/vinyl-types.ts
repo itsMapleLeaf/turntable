@@ -15,7 +15,7 @@ export const trackSchema = z.object({
     canonical: z.string(),
     source: z.string(),
     duration: z.number(),
-    artwork: z.string(),
+    artwork: z.string().nullish(),
   }),
 })
 export type Track = z.output<typeof trackSchema>
