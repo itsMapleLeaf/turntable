@@ -56,7 +56,7 @@
   }
 
   .panel {
-    @apply border-white/10 bg-black/50 shadow-md shadow-black/50 backdrop-blur-lg;
+    @apply border-white/10 bg-black/75 shadow-md shadow-black/50 backdrop-blur-lg;
   }
   .panel-interactive {
     @apply active-press hover:border-accent-700 hover:text-accent-200;
