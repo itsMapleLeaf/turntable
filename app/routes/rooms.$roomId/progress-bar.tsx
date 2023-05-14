@@ -1,10 +1,13 @@
 import { clamp } from "~/helpers/math"
-import { useRoomQueueItem, useRoomSongProgress } from "./room-state-context"
+import {
+  useCurrentRoomQueueItem,
+  useRoomSongProgress,
+} from "./room-state-context"
 
 const glowRadius = 4
 
 export function ProgressBar() {
-  const item = useRoomQueueItem()
+  const item = useCurrentRoomQueueItem()
   const progressSeconds = useRoomSongProgress()
   const progress = clamp(
     progressSeconds / (item?.track.metadata.duration ?? 240),

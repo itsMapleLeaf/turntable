@@ -9,7 +9,7 @@ import {
 
 export function RoomStateProvider({
   room,
-  queue,
+  queue: initialQueue,
   socketUrl,
   children,
 }: {
@@ -22,22 +22,25 @@ export function RoomStateProvider({
   const [members, setMembers] = useState<ReadonlyMap<string, User>>(
     new Map(room.connections.map((user) => [user.id, user])),
   )
-  const [queueItems, setQueueItems] = useState(queue.items)
-  const [currentQueueItem, setCurrentQueueItem] = useState(
-    queue.items.find((item) => item.id === queue.currentItem),
-  )
   const [songProgress, setSongProgress] = useState(0)
+  const [queue, setQueue] = useState(initialQueue)
+  const currentQueueItem = queue.items.find(
+    (item) => item.id === queue.currentItem,
+  )
 
   useEffect(() => {
     return vinylSocket({
       url: socketUrl,
       onMessage: (message) => {
         if (message.type === "queue-update") {
-          setQueueItems(message.items)
+          setQueue((queue) => ({ ...queue, items: message.items }))
         }
 
         if (message.type === "queue-advance") {
-          setCurrentQueueItem(message.item)
+          setQueue((queue) => ({
+            ...queue,
+            currentItem: message.item.id,
+          }))
           setSongProgress(0)
 
           Notification.requestPermission()
@@ -87,12 +90,12 @@ export function RoomStateProvider({
 
   return (
     <MembersContext.Provider value={members}>
-      <QueueContext.Provider value={queueItems}>
-        <QueueItemContext.Provider value={currentQueueItem}>
+      <QueueContext.Provider value={queue}>
+        <QueueCurrentItemContext.Provider value={currentQueueItem}>
           <SongProgressContext.Provider value={songProgress}>
             {children}
           </SongProgressContext.Provider>
-        </QueueItemContext.Provider>
+        </QueueCurrentItemContext.Provider>
       </QueueContext.Provider>
     </MembersContext.Provider>
   )
@@ -101,11 +104,15 @@ export function RoomStateProvider({
 const MembersContext = createContext<ReadonlyMap<string, User>>(new Map())
 export const useRoomMembers = () => useContext(MembersContext)
 
-const QueueContext = createContext<QueueItem[]>([])
+const QueueContext = createContext<Queue>({
+  id: 0,
+  items: [],
+  submitters: [],
+})
 export const useRoomQueue = () => useContext(QueueContext)
 
-const QueueItemContext = createContext<QueueItem | undefined>(undefined)
-export const useRoomQueueItem = () => useContext(QueueItemContext)
+const QueueCurrentItemContext = createContext<QueueItem | undefined>(undefined)
+export const useCurrentRoomQueueItem = () => useContext(QueueCurrentItemContext)
 
 const SongProgressContext = createContext(0)
 export const useRoomSongProgress = () => useContext(SongProgressContext)

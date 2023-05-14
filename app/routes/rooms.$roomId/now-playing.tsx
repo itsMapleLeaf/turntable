@@ -1,8 +1,11 @@
 import prettyMs from "pretty-ms"
-import { useRoomQueueItem, useRoomSongProgress } from "./room-state-context"
+import {
+  useCurrentRoomQueueItem,
+  useRoomSongProgress,
+} from "./room-state-context"
 
 export function NowPlaying() {
-  const item = useRoomQueueItem()
+  const item = useCurrentRoomQueueItem()
   const progress = useRoomSongProgress()
   return (
     <div className="flex flex-1 flex-col text-center leading-5 sm:text-right">

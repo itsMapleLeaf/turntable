@@ -31,6 +31,7 @@ export const queueSchema = z.object({
   id: z.number(),
   items: z.array(queueItemSchema),
   currentItem: z.number().nullish(),
+  submitters: z.array(userSchema),
 })
 export type Queue = z.output<typeof queueSchema>
 
