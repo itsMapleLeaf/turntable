@@ -26,16 +26,6 @@ export function RoomStateProvider({
         if (message.type === "track-update") {
           setTrack(message.track)
           setSongProgress(0)
-
-          Notification.requestPermission()
-            .then((permission) => {
-              if (permission === "granted") {
-                new Notification("Now playing", { body: message.track.title })
-              }
-            })
-            .catch((error) => {
-              console.error("Failed to request permissions:", error)
-            })
         }
 
         if (message.type === "player-time") {
@@ -56,6 +46,31 @@ export function RoomStateProvider({
       },
     })
   }, [socketUrl])
+
+  useEffect(() => {
+    if (!track) return
+    Notification.requestPermission()
+      .then((permission) => {
+        if (permission === "granted") {
+          new Notification("Now playing", { body: track.title })
+        }
+      })
+      .catch((error) => {
+        console.warn("Failed to request permissions:", error)
+      })
+  }, [track])
+
+  useEffect(() => {
+    if (!track) return
+    navigator.mediaSession.metadata = new MediaMetadata({
+      title: track.title,
+    })
+  }, [track])
+
+  useEffect(() => {
+    if (!track) return
+    document.title = `${track.title} | Turntable`
+  }, [track])
 
   return (
     <MembersContext.Provider value={members}>

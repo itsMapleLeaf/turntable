@@ -6,11 +6,13 @@ import {
   Scripts,
   useLoaderData,
 } from "@remix-run/react"
-import type { LinksFunction, LoaderArgs } from "@vercel/remix"
+import type { LinksFunction, LoaderArgs, V2_MetaFunction } from "@vercel/remix"
 import background from "./assets/background.jpg"
 import { Header } from "./components/header"
 import { vinylApi } from "./data/vinyl-api.server"
 import style from "./style.css"
+
+export const meta: V2_MetaFunction = () => [{ title: "Turntable" }]
 
 export const links: LinksFunction = () => [{ rel: "stylesheet", href: style }]
 
