@@ -8,8 +8,15 @@ export const userSchema = z.object({
 export type User = z.infer<typeof userSchema>
 
 export const trackSchema = z.object({
-  title: z.string(),
-  duration: z.number(),
+  id: z.number(),
+  metadata: z.object({
+    title: z.string(),
+    artist: z.string(),
+    canonical: z.string(),
+    source: z.string(),
+    duration: z.number(),
+    artwork: z.string(),
+  }),
 })
 export type Track = z.output<typeof trackSchema>
 

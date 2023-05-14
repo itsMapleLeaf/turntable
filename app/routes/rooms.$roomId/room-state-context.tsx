@@ -31,7 +31,7 @@ export function RoomStateProvider({
             .then((permission) => {
               if (permission === "granted") {
                 new Notification("Now playing", {
-                  body: message.track.title,
+                  body: message.track.metadata.title,
                   silent: true,
                 })
               }
@@ -63,13 +63,13 @@ export function RoomStateProvider({
   useEffect(() => {
     if (!track) return
     navigator.mediaSession.metadata = new MediaMetadata({
-      title: track.title,
+      title: track.metadata.title,
     })
   }, [track])
 
   useEffect(() => {
     if (!track) return
-    document.title = `${track.title} | Turntable`
+    document.title = `${track.metadata.title} | Turntable`
   }, [track])
 
   return (

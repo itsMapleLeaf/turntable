@@ -6,7 +6,11 @@ const glowRadius = 4
 export function ProgressBar() {
   const track = useRoomTrack()
   const progressSeconds = useRoomSongProgress()
-  const progress = clamp(progressSeconds / (track?.duration ?? 240), 0, 1)
+  const progress = clamp(
+    progressSeconds / (track?.metadata.duration ?? 240),
+    0,
+    1,
+  )
   return (
     <div className="relative h-px w-full bg-white/25">
       <div

@@ -14,12 +14,14 @@ export function NowPlaying() {
               secondsDecimalDigits: 0,
             })}{" "}
             /{" "}
-            {prettyMs(track.duration * 1000, {
+            {prettyMs(track.metadata.duration * 1000, {
               colonNotation: true,
               secondsDecimalDigits: 0,
             })}
           </p>
-          <p className="line-clamp-1 [word-break:break-all]">{track.title}</p>
+          <p className="line-clamp-1 [word-break:break-all]">
+            {track.metadata.title}
+          </p>
         </>
       ) : (
         <p className="opacity-75">Nothing playing</p>

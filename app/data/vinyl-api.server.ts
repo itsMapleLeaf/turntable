@@ -179,7 +179,7 @@ export function vinylApi(request: Request) {
           headers.Authorization = `Bearer ${token}`
         }
 
-        const response = await fetch(new URL(`rooms/${roomId}/input`, apiUrl), {
+        const response = await fetch(new URL(`rooms/${roomId}/queue`, apiUrl), {
           method: "POST",
           headers,
           body: url,
