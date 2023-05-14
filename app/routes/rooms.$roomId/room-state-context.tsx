@@ -64,12 +64,16 @@ export function RoomStateProvider({
     if (!track) return
     navigator.mediaSession.metadata = new MediaMetadata({
       title: track.metadata.title,
+      artist: track.metadata.artist,
+      ...(track.metadata.artwork && {
+        artwork: [{ src: track.metadata.artwork }],
+      }),
     })
   }, [track])
 
   useEffect(() => {
     if (!track) return
-    document.title = `${track.metadata.title} | Turntable`
+    document.title = `${track.metadata.artist} - ${track.metadata.title} | Turntable`
   }, [track])
 
   return (
