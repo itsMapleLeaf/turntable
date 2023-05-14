@@ -1,5 +1,6 @@
 import { z } from "zod"
 import { delay } from "~/helpers/delay"
+import { resultify } from "~/helpers/result"
 import { socket } from "~/helpers/socket"
 import { trackSchema } from "./vinyl-types"
 
@@ -44,35 +45,39 @@ export function vinylSocket({
   const controller = new AbortController()
   let running = true
 
-  async function run() {
-    while (running) {
-      try {
-        const connection = await socket(url, { signal: controller.signal })
-        console.info("Connected to socket")
+  async function run(): Promise<void> {
+    if (!running) return
 
-        for await (const event of connection) {
-          try {
-            const result = socketMessageSchema.safeParse(JSON.parse(event.data))
-            if (result.success) {
-              onMessage(result.data)
-            } else {
-              console.error("Unknown socket message:", result.error)
-            }
-          } catch (error) {
-            console.error("Failed to parse socket message:", error)
-          }
-        }
-
-        console.info("Socket closed")
-      } catch (error) {
-        console.error("Failed to connect to socket:", error)
-      }
-
-      if (running) {
-        console.info("Reconnecting...")
-        await delay(2000)
-      }
+    const [connection, connectionError] = await resultify.promise(
+      socket(url, { signal: controller.signal }),
+    )
+    if (!connection) {
+      console.error("Failed to connect to socket:", connectionError)
+      await delay(2000)
+      return run()
     }
+
+    console.info("Connected to socket")
+
+    for await (const event of connection) {
+      const [json, jsonError] = resultify(() => JSON.parse(event.data))
+      if (!json) {
+        console.error("Failed to parse socket message JSON:", jsonError)
+        continue
+      }
+
+      const messageResult = socketMessageSchema.safeParse(event.data)
+      if (!messageResult.success) {
+        console.error("Failed to validate socket message:", messageResult.error)
+        continue
+      }
+
+      onMessage(messageResult.data)
+    }
+
+    console.info("Reconnecting...")
+    await delay(2000)
+    return run()
   }
 
   void run()
