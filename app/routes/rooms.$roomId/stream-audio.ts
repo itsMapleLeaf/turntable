@@ -39,7 +39,7 @@ export function stopStream() {
 
 export function setStreamVolume(volume: number) {
   const audio = getStreamAudioElement()
-  audio.volume = volume
+  audio.volume = volume ** 2
 }
 
 export function useStreamPlaying() {
