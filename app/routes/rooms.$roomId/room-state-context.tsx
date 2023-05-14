@@ -26,7 +26,18 @@ export function RoomStateProvider({
         if (message.type === "track-update") {
           setTrack(message.track)
           setSongProgress(0)
+
+          Notification.requestPermission()
+            .then((permission) => {
+              if (permission === "granted") {
+                new Notification("Now playing", { body: message.track.title })
+              }
+            })
+            .catch((error) => {
+              console.error("Failed to request permissions:", error)
+            })
         }
+
         if (message.type === "player-time") {
           setSongProgress(message.seconds)
         }
