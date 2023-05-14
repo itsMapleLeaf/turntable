@@ -2,7 +2,7 @@ import { z } from "zod"
 import { delay } from "~/helpers/delay"
 import { resultify } from "~/helpers/result"
 import { socket } from "~/helpers/socket"
-import { trackSchema } from "./vinyl-types"
+import { queueItemSchema } from "./vinyl-types"
 
 const socketMessageSchema = z.union([
   z.object({
@@ -20,13 +20,12 @@ const socketMessageSchema = z.union([
     room: z.string(),
   }),
   z.object({
-    type: z.literal("track-update"),
-    track: trackSchema,
+    type: z.literal("queue-update"),
+    items: z.array(queueItemSchema),
   }),
   z.object({
-    type: z.literal("queue-add"),
-    user: z.string(),
-    track: trackSchema,
+    type: z.literal("queue-advance"),
+    item: queueItemSchema,
   }),
   z.object({
     type: z.literal("player-time"),
@@ -66,9 +65,12 @@ export function vinylSocket({
         continue
       }
 
-      const messageResult = socketMessageSchema.safeParse(event.data)
+      const messageResult = socketMessageSchema.safeParse(json)
       if (!messageResult.success) {
-        console.error("Failed to validate socket message:", messageResult.error)
+        console.error(
+          "Failed to validate socket message:",
+          messageResult.error.format(),
+        )
         continue
       }
 

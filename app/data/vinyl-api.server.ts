@@ -1,6 +1,6 @@
 import { z } from "zod"
 import { getSessionToken } from "./vinyl-session"
-import { roomSchema, userSchema, type Room } from "./vinyl-types"
+import { queueSchema, roomSchema, userSchema, type Room } from "./vinyl-types"
 
 const apiUrl = new URL(
   "/v1/",
@@ -148,12 +148,12 @@ export function vinylApi(request: Request) {
       return { data: room }
     },
 
-    async getRoomStream(roomId: string, token: string, signal: AbortSignal) {
-      return fetch(new URL(`rooms/${roomId}/stream`, apiUrl), {
-        signal,
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+    async getRoomQueue(roomId: string) {
+      return vinylFetch({
+        request,
+        method: "GET",
+        path: `rooms/${roomId}/queue`,
+        schema: queueSchema,
       })
     },
 

@@ -20,6 +20,20 @@ export const trackSchema = z.object({
 })
 export type Track = z.output<typeof trackSchema>
 
+export const queueItemSchema = z.object({
+  id: z.number(),
+  track: trackSchema,
+  submitter: z.string(),
+})
+export type QueueItem = z.output<typeof queueItemSchema>
+
+export const queueSchema = z.object({
+  id: z.number(),
+  items: z.array(queueItemSchema),
+  currentItem: z.number().nullish(),
+})
+export type Queue = z.output<typeof queueSchema>
+
 export const roomSchema = z.object({
   id: z.string(),
   name: z.string(),

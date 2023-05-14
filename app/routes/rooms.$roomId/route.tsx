@@ -7,7 +7,7 @@ import { Button } from "~/components/button"
 import { Spinner } from "~/components/spinner"
 import { vinylApi } from "~/data/vinyl-api.server"
 import { getSessionToken } from "~/data/vinyl-session"
-import { type Room } from "~/data/vinyl-types"
+import { type Queue, type Room } from "~/data/vinyl-types"
 import { raise } from "~/helpers/raise"
 import { useSearchFetcher, type SearchFetcher } from "~/routes/search"
 import { NowPlaying } from "./now-playing"
@@ -31,9 +31,10 @@ export async function loader({ request, params }: LoaderArgs) {
 
   const api = vinylApi(request)
 
-  const [user, room, token] = await Promise.all([
+  const [user, room, queue, token] = await Promise.all([
     api.getUser(),
     api.getRoom(roomId),
+    api.getRoomQueue(roomId),
     getSessionToken(request),
   ])
 
@@ -43,6 +44,7 @@ export async function loader({ request, params }: LoaderArgs) {
 
   return json({
     room,
+    queue,
     streamUrl: api.getRoomStreamUrl(roomId, token).href,
     socketUrl: api.getGatewayUrl(token).href,
   })
@@ -58,14 +60,17 @@ export async function action({ request, params }: ActionArgs) {
 }
 
 export default function RoomPage() {
-  const { room } = useLoaderData<typeof loader>()
+  const { room, queue } = useLoaderData<typeof loader>()
   if ("error" in room) {
     return <p>Failed to load room: {room.error}</p>
   }
-  return <RoomPageContent room={room.data} />
+  if ("error" in queue) {
+    return <p>Failed to load queue: {queue.error}</p>
+  }
+  return <RoomPageContent room={room.data} queue={queue.data} />
 }
 
-function RoomPageContent({ room }: { room: Room }) {
+function RoomPageContent({ room, queue }: { room: Room; queue: Queue }) {
   const { socketUrl, streamUrl } = useLoaderData<typeof loader>()
   const playing = useStreamPlaying()
 
@@ -79,7 +84,7 @@ function RoomPageContent({ room }: { room: Room }) {
   }, [play])
 
   return (
-    <RoomStateProvider room={room} socketUrl={socketUrl}>
+    <RoomStateProvider room={room} queue={queue} socketUrl={socketUrl}>
       <main className="container flex-1 py-4 grid gap-4 content-start">
         <section className="panel flex flex-col border divide-y divide-white/10">
           <div className="flex items-center p-4">

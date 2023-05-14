@@ -1,14 +1,20 @@
 import { createContext, useContext, useEffect, useState } from "react"
 import { vinylSocket } from "~/data/vinyl-socket"
-import { type Room, type Track, type User } from "~/data/vinyl-types"
-import { type Nullish } from "~/helpers/types"
+import {
+  type Queue,
+  type QueueItem,
+  type Room,
+  type User,
+} from "~/data/vinyl-types"
 
 export function RoomStateProvider({
   room,
+  queue,
   socketUrl,
   children,
 }: {
   room: Room
+  queue: Queue
   socketUrl: string
   children: React.ReactNode
 }) {
@@ -16,22 +22,29 @@ export function RoomStateProvider({
   const [members, setMembers] = useState<ReadonlyMap<string, User>>(
     new Map(room.connections.map((user) => [user.id, user])),
   )
-  const [track, setTrack] = useState(room.currentTrack)
+  const [queueItems, setQueueItems] = useState(queue.items)
+  const [currentQueueItem, setCurrentQueueItem] = useState(
+    queue.items.find((item) => item.id === queue.currentItem),
+  )
   const [songProgress, setSongProgress] = useState(0)
 
   useEffect(() => {
     return vinylSocket({
       url: socketUrl,
       onMessage: (message) => {
-        if (message.type === "track-update") {
-          setTrack(message.track)
+        if (message.type === "queue-update") {
+          setQueueItems(message.items)
+        }
+
+        if (message.type === "queue-advance") {
+          setCurrentQueueItem(message.item)
           setSongProgress(0)
 
           Notification.requestPermission()
             .then((permission) => {
               if (permission === "granted") {
                 new Notification("Now playing", {
-                  body: message.track.metadata.title,
+                  body: message.item.track.metadata.title,
                   silent: true,
                 })
               }
@@ -61,28 +74,26 @@ export function RoomStateProvider({
   }, [socketUrl])
 
   useEffect(() => {
-    if (!track) return
-    navigator.mediaSession.metadata = new MediaMetadata({
-      title: track.metadata.title,
-      artist: track.metadata.artist,
-      ...(track.metadata.artwork && {
-        artwork: [{ src: track.metadata.artwork }],
-      }),
-    })
-  }, [track])
+    if (!currentQueueItem) return
 
-  useEffect(() => {
-    if (!track) return
-    document.title = `${track.metadata.artist} - ${track.metadata.title} | Turntable`
-  }, [track])
+    const { metadata } = currentQueueItem.track
+    navigator.mediaSession.metadata = new MediaMetadata({
+      title: metadata.title,
+      artist: metadata.artist,
+      ...(metadata.artwork && { artwork: [{ src: metadata.artwork }] }),
+    })
+    document.title = `${metadata.artist} - ${metadata.title} | Turntable`
+  }, [currentQueueItem])
 
   return (
     <MembersContext.Provider value={members}>
-      <TrackContext.Provider value={track}>
-        <SongProgressContext.Provider value={songProgress}>
-          {children}
-        </SongProgressContext.Provider>
-      </TrackContext.Provider>
+      <QueueContext.Provider value={queueItems}>
+        <QueueItemContext.Provider value={currentQueueItem}>
+          <SongProgressContext.Provider value={songProgress}>
+            {children}
+          </SongProgressContext.Provider>
+        </QueueItemContext.Provider>
+      </QueueContext.Provider>
     </MembersContext.Provider>
   )
 }
@@ -90,8 +101,11 @@ export function RoomStateProvider({
 const MembersContext = createContext<ReadonlyMap<string, User>>(new Map())
 export const useRoomMembers = () => useContext(MembersContext)
 
-const TrackContext = createContext<Nullish<Track>>(undefined)
-export const useRoomTrack = () => useContext(TrackContext)
+const QueueContext = createContext<QueueItem[]>([])
+export const useRoomQueue = () => useContext(QueueContext)
+
+const QueueItemContext = createContext<QueueItem | undefined>(undefined)
+export const useRoomQueueItem = () => useContext(QueueItemContext)
 
 const SongProgressContext = createContext(0)
 export const useRoomSongProgress = () => useContext(SongProgressContext)
