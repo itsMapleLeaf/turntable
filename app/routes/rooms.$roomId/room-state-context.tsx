@@ -64,6 +64,10 @@ export function RoomStateProvider({
           setMembers((members) =>
             new Map(members).set(message.user.id, message.user),
           )
+          setQueue((queue) => ({
+            ...queue,
+            submitters: [...queue.submitters, message.user],
+          }))
         }
         if (message.type === "user-left-room") {
           setMembers((members) => {
