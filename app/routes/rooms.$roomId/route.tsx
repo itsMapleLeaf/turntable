@@ -1,7 +1,8 @@
+import * as Popover from "@radix-ui/react-popover"
 import { useFetcher, useLoaderData } from "@remix-run/react"
 import { json, redirect, type ActionArgs, type LoaderArgs } from "@vercel/remix"
 import { PlayCircle, Plus } from "lucide-react"
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useEffect, useRef, useState, type RefObject } from "react"
 import { zfd } from "zod-form-data"
 import { Button } from "~/components/button"
 import { Spinner } from "~/components/spinner"
@@ -77,8 +78,8 @@ function RoomPageContent({ room, queue }: { room: Room; queue: Queue }) {
 
   return (
     <RoomStateProvider room={room} queue={queue} socketUrl={socketUrl}>
-      <main className="container flex-1 py-4 grid gap-4 content-start">
-        <section className="panel flex flex-col border divide-y divide-white/10">
+      <main className="container flex-1 py-4 grid gap-4 content-start isolate">
+        <section className="panel flex flex-col border divide-y divide-white/10 sticky top-20 z-10">
           <div className="flex items-center p-4">
             <h1 className="flex-1 text-2xl font-light">{room.name}</h1>
             <RoomMembers />
@@ -116,54 +117,79 @@ function AddSongForm() {
 
   const searchFetcher = useSearchFetcher(debouncedSearchInput)
 
+  const anchorRef = useRef<HTMLDivElement | null>(null)
+  const anchorRect = useRect(anchorRef)
+
+  const [popoverOpen, setPopoverOpen] = useState(false)
+
   return (
     <trackSubmitFetcher.Form method="POST" className="divide-y divide-white/10">
-      <div className="flex flex-row gap-2 p-3">
-        <div className="flex-1 relative">
-          <input
-            name="url"
-            placeholder="Search or enter song URL"
-            className="input h-full"
-            required
-            disabled={trackSubmitPending}
-            value={searchInput}
-            onChange={(event) => setSearchInput(event.currentTarget.value)}
-            onFocus={(event) => event.currentTarget.select()}
-          />
-          <div
-            data-visible={
-              searchFetcher.state === "loading" ||
-              trackSubmitPending ||
-              undefined
-            }
-            className="absolute right-0 inset-y-0 px-3 flex items-center justify-center data-[visible]:opacity-100 opacity-0 transition-opacity pointer-events-none"
-          >
-            <Spinner />
+      <Popover.Root open={popoverOpen} onOpenChange={setPopoverOpen}>
+        <Popover.Anchor className="flex flex-row gap-2 p-3" ref={anchorRef}>
+          <div className="flex-1 relative">
+            <input
+              name="url"
+              placeholder="Search or enter song URL"
+              className="input h-full"
+              required
+              disabled={trackSubmitPending}
+              value={searchInput}
+              onChange={(event) => setSearchInput(event.currentTarget.value)}
+              onFocus={(event) => {
+                event.currentTarget.select()
+                setPopoverOpen(true)
+              }}
+              onMouseDown={(event) => {
+                event.currentTarget.select()
+                setPopoverOpen(true)
+              }}
+            />
+            <div
+              data-visible={
+                searchFetcher.state === "loading" ||
+                trackSubmitPending ||
+                undefined
+              }
+              className="absolute right-0 inset-y-0 px-3 flex items-center justify-center data-[visible]:opacity-100 opacity-0 transition-opacity pointer-events-none"
+            >
+              <Spinner />
+            </div>
           </div>
-        </div>
-        <Button
-          pending={trackSubmitPending}
-          label="Add"
-          pendingLabel="Adding..."
-          iconElement={<Plus />}
-        />
-      </div>
+          <Button
+            pending={trackSubmitPending}
+            label="Add"
+            pendingLabel="Adding..."
+            iconElement={<Plus />}
+          />
+        </Popover.Anchor>
 
-      {debouncedSearchInput && (
-        <SearchResults
-          query={debouncedSearchInput}
-          fetcher={searchFetcher}
-          onSubmit={(url) => {
-            trackSubmitFetcher.submit({ url }, { method: "POST" })
-          }}
-        />
-      )}
+        <Popover.Portal>
+          <Popover.Content
+            className="panel border"
+            align="start"
+            forceMount
+            onOpenAutoFocus={(event) => event.preventDefault()}
+          >
+            <div style={{ width: anchorRect?.width }}>
+              {debouncedSearchInput && (
+                <SearchResults
+                  query={debouncedSearchInput}
+                  fetcher={searchFetcher}
+                  onSubmit={(url) => {
+                    trackSubmitFetcher.submit({ url }, { method: "POST" })
+                  }}
+                />
+              )}
+            </div>
+          </Popover.Content>
+        </Popover.Portal>
 
-      {!trackSubmitPending && trackSubmitFetcher.data?.error ? (
-        <p className="text-sm text-error-400">
-          {trackSubmitFetcher.data?.error}
-        </p>
-      ) : null}
+        {!trackSubmitPending && trackSubmitFetcher.data?.error ? (
+          <p className="text-sm text-error-400">
+            {trackSubmitFetcher.data?.error}
+          </p>
+        ) : null}
+      </Popover.Root>
     </trackSubmitFetcher.Form>
   )
 }
@@ -229,4 +255,21 @@ function useDebouncedValue<T>(value: T, delay: number) {
     return () => clearTimeout(handler)
   }, [value, delay])
   return debouncedValue
+}
+
+function useRect(ref: RefObject<HTMLElement>) {
+  const [rect, setRect] = useState<DOMRect>()
+
+  useEffect(() => {
+    const element = ref.current
+    if (!element) return
+
+    const observer = new ResizeObserver(([info]) => {
+      if (info) setRect(info.target.getBoundingClientRect())
+    })
+    observer.observe(element)
+    return () => observer.disconnect()
+  }, [ref])
+
+  return rect
 }
