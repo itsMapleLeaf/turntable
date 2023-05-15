@@ -45,7 +45,7 @@
   }
 
   .button {
-    @apply link active-press flex flex-row items-center gap-2 rounded-md border border-white/10 p-3 leading-none hover:border-accent-700 disabled:opacity-50 hover:bg-black/25;
+    @apply link active-press flex flex-row items-center gap-2 rounded-md border border-white/10 p-3 leading-none hover:border-accent-700 hover:bg-black/25 disabled:opacity-50;
   }
   .button > svg {
     @apply h-5 w-5;

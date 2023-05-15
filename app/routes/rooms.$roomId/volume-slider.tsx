@@ -27,7 +27,7 @@ export function VolumeSlider() {
   return (
     <input
       type="range"
-      className="max-w-full w-48"
+      className="w-48 max-w-full"
       min={0}
       max={1}
       step={0.01}

@@ -78,8 +78,8 @@ function RoomPageContent({ room, queue }: { room: Room; queue: Queue }) {
 
   return (
     <RoomStateProvider room={room} queue={queue} socketUrl={socketUrl}>
-      <main className="container flex-1 py-4 grid gap-4 content-start isolate">
-        <section className="panel flex flex-col border divide-y divide-white/10 sticky top-20 z-10">
+      <main className="container isolate grid flex-1 content-start gap-4 py-4">
+        <section className="panel sticky top-20 z-10 flex flex-col divide-y divide-white/10 border">
           <div className="flex items-center p-4">
             <h1 className="flex-1 text-2xl font-light">{room.name}</h1>
             <RoomMembers />
@@ -126,7 +126,7 @@ function AddSongForm() {
     <trackSubmitFetcher.Form method="POST" className="divide-y divide-white/10">
       <Popover.Root open={popoverOpen} onOpenChange={setPopoverOpen}>
         <Popover.Anchor className="flex flex-row gap-2 p-3" ref={anchorRef}>
-          <div className="flex-1 relative">
+          <div className="relative flex-1">
             <input
               name="url"
               placeholder="Search or enter song URL"
@@ -150,7 +150,7 @@ function AddSongForm() {
                 trackSubmitPending ||
                 undefined
               }
-              className="absolute right-0 inset-y-0 px-3 flex items-center justify-center data-[visible]:opacity-100 opacity-0 transition-opacity pointer-events-none"
+              className="pointer-events-none absolute inset-y-0 right-0 flex items-center justify-center px-3 opacity-0 transition-opacity data-[visible]:opacity-100"
             >
               <Spinner />
             </div>
@@ -219,12 +219,12 @@ function SearchResults({
   }
 
   return (
-    <ul className="divide-y divide-white/10 max-h-80 overflow-y-scroll">
+    <ul className="max-h-80 divide-y divide-white/10 overflow-y-scroll">
       {fetcher.data.data.map((video) => (
         <li key={video.id}>
           <button
             type="button"
-            className="button border-0 rounded-none w-full flex items-center gap-3 text-left ring-inset"
+            className="button flex w-full items-center gap-3 rounded-none border-0 text-left ring-inset"
             disabled={fetcher.state === "submitting"}
             onClick={() => {
               onSubmit(video.link)
@@ -233,7 +233,7 @@ function SearchResults({
             <img
               src={video.thumbnail}
               alt=""
-              className="w-12 aspect-square object-cover border border-white/10 rounded"
+              className="aspect-square w-12 rounded border border-white/10 object-cover"
             />
             <div className="leading-none">
               <div className="text-sm opacity-75">

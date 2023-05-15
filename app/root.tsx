@@ -27,7 +27,7 @@ export default function Root() {
   return (
     <html
       lang="en"
-      className="break-words bg-black text-gray-100 [word-break:break-word] overflow-x-clip selection:bg-accent-600/50"
+      className="overflow-x-clip break-words bg-black text-gray-100 [word-break:break-word] selection:bg-accent-600/50"
     >
       <head>
         <Links />
@@ -48,7 +48,7 @@ export default function Root() {
         ></link>
       </head>
       <body
-        className="bg-center bg-fixed bg-cover"
+        className="bg-cover bg-fixed bg-center"
         style={{ backgroundImage: `url(${background})` }}
       >
         <div className="relative isolate flex min-h-screen flex-col bg-black/50">

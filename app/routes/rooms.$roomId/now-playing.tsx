@@ -8,11 +8,11 @@ export function NowPlaying() {
   const item = useCurrentRoomQueueItem()
   const progress = useRoomSongProgress()
   return (
-    <div className="flex flex-1 flex-col justify-center text-center leading-5 gap-2 sm:flex-row items-center sm:text-right sm:justify-end">
+    <div className="flex flex-1 flex-col items-center justify-center gap-2 text-center leading-5 sm:flex-row sm:justify-end sm:text-right">
       {item ? (
         <>
           <div>
-            <p className="text-sm opacity-75 tabular-nums">
+            <p className="text-sm tabular-nums opacity-75">
               {item.track.metadata.artist} &bull;{" "}
               {prettyMs(progress * 1000, {
                 colonNotation: true,
@@ -32,7 +32,7 @@ export function NowPlaying() {
             <img
               src={item.track.metadata.artwork}
               alt=""
-              className="w-12 h-12 ml-2 object-cover"
+              className="ml-2 h-12 w-12 object-cover"
             />
           )}
         </>

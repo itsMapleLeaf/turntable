@@ -9,10 +9,11 @@
     "dev": "remix dev",
     "build": "remix build",
     "start": "dotenv -- remix-serve build",
-    "lint": "run-p --continue-on-error lint:*",
+    "lint": "run-p --continue-on-error --print-label lint:*",
     "lint:eslint": "eslint --ext js,ts,tsx .",
     "lint:ts": "tsc --noEmit",
-    "format": "run-p --continue-on-error format:*",
+    "lint:prettier": "prettier --check .",
+    "format": "run-s --continue-on-error format:*",
     "format:eslint": "pnpm lint:eslint --fix",
     "format:prettier": "prettier --write ."
   },

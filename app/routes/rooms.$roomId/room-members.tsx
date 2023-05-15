@@ -18,7 +18,7 @@ export function RoomMembers() {
                   <Tooltip.Content
                     side="bottom"
                     sideOffset={8}
-                    className="bg-accent-900/75 text-xs leading-none p-1 rounded-sm border-accent-700 border shadow-md shadow-black/50 radix-fade-zoom-transition"
+                    className="radix-fade-zoom-transition rounded-sm border border-accent-700 bg-accent-900/75 p-1 text-xs leading-none shadow-md shadow-black/50"
                   >
                     {member.display_name}
                   </Tooltip.Content>
