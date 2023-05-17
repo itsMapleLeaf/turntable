@@ -8,7 +8,7 @@ import {
 } from "@remix-run/react"
 import type { LinksFunction, LoaderArgs, V2_MetaFunction } from "@vercel/remix"
 import background from "./assets/background.jpg"
-import favicon from "./assets/favicon.webp"
+import favicon from "./assets/favicon.png"
 import { Header } from "./components/header"
 import { vinylApi } from "./data/vinyl-api.server"
 import style from "./style.css"
