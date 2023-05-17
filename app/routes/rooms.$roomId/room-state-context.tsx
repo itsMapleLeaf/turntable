@@ -7,6 +7,26 @@ import {
   type User,
 } from "~/data/vinyl-types"
 
+let notification: Notification | undefined
+
+async function showNotification(options: { title: string; body: string }) {
+  try {
+    const permission = await Notification.requestPermission()
+    if (permission !== "granted") return
+
+    notification?.close()
+
+    notification = new Notification("Now playing", { ...options, silent: true })
+    notification.addEventListener("click", () => {
+      window.focus()
+      notification?.close()
+      notification = undefined
+    })
+  } catch (error) {
+    console.warn("Failed to show notification:", error)
+  }
+}
+
 export function RoomStateProvider({
   room,
   queue: initialQueue,
@@ -42,19 +62,10 @@ export function RoomStateProvider({
             currentItem: message.item.id,
           }))
           setSongProgress(0)
-
-          Notification.requestPermission()
-            .then((permission) => {
-              if (permission === "granted") {
-                new Notification("Now playing", {
-                  body: message.item.track.metadata.title,
-                  silent: true,
-                })
-              }
-            })
-            .catch((error) => {
-              console.warn("Failed to request permissions:", error)
-            })
+          void showNotification({
+            title: "Now playing",
+            body: `${message.item.track.metadata.artist} - ${message.item.track.metadata.title}`,
+          })
         }
 
         if (message.type === "player-time") {
