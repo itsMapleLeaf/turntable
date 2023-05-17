@@ -28,20 +28,27 @@ async function showNotification(options: { title: string; body: string }) {
 }
 
 export function RoomStateProvider({
+  user,
   room,
   queue: initialQueue,
   socketUrl,
   children,
 }: {
+  user: User
   room: Room
   queue: Queue
   socketUrl: string
   children: React.ReactNode
 }) {
   // use a map so we don't have duplicate users
-  const [members, setMembers] = useState<ReadonlyMap<string, User>>(
-    new Map(room.connections.map((user) => [user.id, user])),
-  )
+  const [members, setMembers] = useState<ReadonlyMap<string, User>>(() => {
+    const map = new Map()
+    map.set(user.id, user)
+    for (const connection of room.connections) {
+      map.set(connection.id, connection)
+    }
+    return map
+  })
   const [songProgress, setSongProgress] = useState(0)
   const [queue, setQueue] = useState(initialQueue)
   const currentQueueItem = queue.items.find(

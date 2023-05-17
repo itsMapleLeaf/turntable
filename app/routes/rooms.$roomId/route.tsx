@@ -36,6 +36,7 @@ export async function loader({ request, params }: LoaderArgs) {
   }
 
   return json({
+    user: user.data,
     room,
     queue,
     streamUrl: api.getRoomStreamUrl(roomId, token).href,
@@ -64,7 +65,7 @@ export default function RoomPage() {
 }
 
 function RoomPageContent({ room, queue }: { room: Room; queue: Queue }) {
-  const { socketUrl, streamUrl } = useLoaderData<typeof loader>()
+  const { socketUrl, streamUrl, user } = useLoaderData<typeof loader>()
   const playing = useStreamPlaying()
 
   const play = useCallback(() => {
@@ -77,7 +78,12 @@ function RoomPageContent({ room, queue }: { room: Room; queue: Queue }) {
   }, [play])
 
   return (
-    <RoomStateProvider room={room} queue={queue} socketUrl={socketUrl}>
+    <RoomStateProvider
+      room={room}
+      queue={queue}
+      user={user}
+      socketUrl={socketUrl}
+    >
       <main className="container isolate grid flex-1 content-start gap-4 py-4">
         <section className="panel sticky top-20 z-10 flex flex-col divide-y divide-white/10 border">
           <div className="flex items-center p-4">
