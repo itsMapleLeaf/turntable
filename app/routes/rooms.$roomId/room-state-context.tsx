@@ -41,14 +41,7 @@ export function RoomStateProvider({
   children: React.ReactNode
 }) {
   // use a map so we don't have duplicate users
-  const [members, setMembers] = useState<ReadonlyMap<string, User>>(() => {
-    const map = new Map()
-    map.set(user.id, user)
-    for (const connection of room.connections) {
-      map.set(connection.id, connection)
-    }
-    return map
-  })
+  const [members, setMembers] = useState([...room.connections, user])
   const [songProgress, setSongProgress] = useState(0)
   const [queue, setQueue] = useState(initialQueue)
   const currentQueueItem = queue.items.find(
@@ -79,20 +72,16 @@ export function RoomStateProvider({
           setSongProgress(message.seconds)
         }
         if (message.type === "user-entered-room") {
-          setMembers((members) =>
-            new Map(members).set(message.user.id, message.user),
-          )
+          setMembers((members) => [...members, message.user])
           setQueue((queue) => ({
             ...queue,
             submitters: [...queue.submitters, message.user],
           }))
         }
         if (message.type === "user-left-room") {
-          setMembers((members) => {
-            const newMembers = new Map(members)
-            newMembers.delete(message.user)
-            return newMembers
-          })
+          setMembers((members) =>
+            members.filter((member) => member.id !== message.user),
+          )
         }
       },
     })
@@ -123,7 +112,7 @@ export function RoomStateProvider({
   )
 }
 
-const MembersContext = createContext<ReadonlyMap<string, User>>(new Map())
+const MembersContext = createContext<User[]>([])
 export const useRoomMembers = () => useContext(MembersContext)
 
 const QueueContext = createContext<Queue>({
