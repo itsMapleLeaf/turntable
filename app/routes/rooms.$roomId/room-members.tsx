@@ -7,7 +7,7 @@ export function RoomMembers() {
     <Tooltip.Provider>
       <ul className="flex flex-row-reverse -space-x-2 space-x-reverse">
         {[...members.values()]
-          .sort((a, b) => a.display_name.localeCompare(b.display_name))
+          .sort((a, b) => b.display_name.localeCompare(a.display_name))
           .map((member) => (
             <li key={member.id} className="relative">
               <Tooltip.Root delayDuration={150}>
