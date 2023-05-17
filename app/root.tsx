@@ -8,13 +8,17 @@ import {
 } from "@remix-run/react"
 import type { LinksFunction, LoaderArgs, V2_MetaFunction } from "@vercel/remix"
 import background from "./assets/background.jpg"
+import favicon from "./assets/favicon.webp"
 import { Header } from "./components/header"
 import { vinylApi } from "./data/vinyl-api.server"
 import style from "./style.css"
 
 export const meta: V2_MetaFunction = () => [{ title: "Turntable" }]
 
-export const links: LinksFunction = () => [{ rel: "stylesheet", href: style }]
+export const links: LinksFunction = () => [
+  { rel: "stylesheet", href: style },
+  { rel: "icon", href: favicon },
+]
 
 export async function loader({ request }: LoaderArgs) {
   const api = vinylApi(request)
