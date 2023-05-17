@@ -32,6 +32,7 @@ export function RoomQueue() {
                 {metadata.artist} &bull;{" "}
                 {prettyMilliseconds(metadata.duration * 1000, {
                   colonNotation: true,
+                  secondsDecimalDigits: 0,
                 })}{" "}
                 &bull; added by {getSubmitterName(submitter)}
               </p>
