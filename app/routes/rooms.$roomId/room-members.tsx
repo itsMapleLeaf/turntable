@@ -5,7 +5,7 @@ export function RoomMembers() {
   const members = useRoomMembers()
   return (
     <Tooltip.Provider>
-      <ul className="flex flex-row-reverse -space-x-2 space-x-reverse">
+      <ul className="flex flex-row-reverse flex-wrap -space-x-2 space-x-reverse">
         {members.map((member) => (
           <li key={member.id} className="relative">
             <Tooltip.Root delayDuration={150}>

@@ -86,7 +86,7 @@ function RoomPageContent({ room, queue }: { room: Room; queue: Queue }) {
     >
       <main className="container isolate grid flex-1 content-start gap-4 py-4">
         <section className="panel sticky top-20 z-10 flex flex-col divide-y divide-white/10 border">
-          <div className="flex items-center p-4">
+          <div className="flex flex-wrap items-center p-4">
             <h1 className="flex-1 text-2xl font-light">{room.name}</h1>
             <RoomMembers />
           </div>
