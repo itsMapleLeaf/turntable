@@ -28,20 +28,18 @@ async function showNotification(options: { title: string; body: string }) {
 }
 
 export function RoomStateProvider({
-  user,
   room,
   queue: initialQueue,
   socketUrl,
   children,
 }: {
-  user: User
   room: Room
   queue: Queue
   socketUrl: string
   children: React.ReactNode
 }) {
   // use a map so we don't have duplicate users
-  const [members, setMembers] = useState([...room.connections, user])
+  const [members, setMembers] = useState(room.connections)
   const [songProgress, setSongProgress] = useState(0)
   const [queue, setQueue] = useState(initialQueue)
   const currentQueueItem = queue.items.find(
@@ -53,7 +51,11 @@ export function RoomStateProvider({
       url: socketUrl,
       onMessage: (message) => {
         if (message.type === "queue-update") {
-          setQueue((queue) => ({ ...queue, items: message.items }))
+          setQueue((queue) => ({
+            ...queue,
+            items: message.items,
+            submitters: message.submitters || queue.submitters, // remove this fallback when submitters is added
+          }))
         }
 
         if (message.type === "queue-advance") {
@@ -73,15 +75,16 @@ export function RoomStateProvider({
         }
         if (message.type === "user-entered-room") {
           setMembers((members) => [...members, message.user])
-          setQueue((queue) => ({
-            ...queue,
-            submitters: [...queue.submitters, message.user],
-          }))
         }
         if (message.type === "user-left-room") {
-          setMembers((members) =>
-            members.filter((member) => member.id !== message.user),
-          )
+          setMembers((members) => {
+            const index = members.findIndex((m) => m.id === message.user)
+            if (index === -1) return members
+
+            const newMembers = [...members]
+            newMembers.splice(index, 1)
+            return newMembers
+          })
         }
       },
     })
