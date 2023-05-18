@@ -38,7 +38,7 @@ export function RoomStateProvider({
   socketUrl: string
   children: React.ReactNode
 }) {
-  // use a map so we don't have duplicate users
+  const [connected, setConnected] = useState(false)
   const [members, setMembers] = useState(room.connections)
   const [songProgress, setSongProgress] = useState(0)
   const [queue, setQueue] = useState(initialQueue)
@@ -49,6 +49,8 @@ export function RoomStateProvider({
   useEffect(() => {
     return vinylSocket({
       url: socketUrl,
+      onConnect: () => setConnected(true),
+      onDisconnect: () => setConnected(false),
       onMessage: (message) => {
         if (message.type === "queue-update") {
           setQueue((queue) => ({
@@ -107,7 +109,9 @@ export function RoomStateProvider({
       <QueueContext.Provider value={queue}>
         <QueueCurrentItemContext.Provider value={currentQueueItem}>
           <SongProgressContext.Provider value={songProgress}>
-            {children}
+            <ConnectedContext.Provider value={connected}>
+              {children}
+            </ConnectedContext.Provider>
           </SongProgressContext.Provider>
         </QueueCurrentItemContext.Provider>
       </QueueContext.Provider>
@@ -130,3 +134,6 @@ export const useCurrentRoomQueueItem = () => useContext(QueueCurrentItemContext)
 
 const SongProgressContext = createContext(0)
 export const useRoomSongProgress = () => useContext(SongProgressContext)
+
+const ConnectedContext = createContext(false)
+export const useRoomConnected = () => useContext(ConnectedContext)

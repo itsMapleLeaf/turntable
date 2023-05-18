@@ -8,14 +8,14 @@ import { Button } from "~/components/button"
 import { Spinner } from "~/components/spinner"
 import { vinylApi } from "~/data/vinyl-api.server"
 import { getSessionToken } from "~/data/vinyl-session"
-import { type Queue, type Room } from "~/data/vinyl-types"
+import { type Room } from "~/data/vinyl-types"
 import { raise } from "~/helpers/raise"
 import { useSearchFetcher, type SearchFetcher } from "~/routes/search"
 import { NowPlaying } from "./now-playing"
 import { ProgressBar } from "./progress-bar"
 import { RoomMembers } from "./room-members"
 import { RoomQueue } from "./room-queue"
-import { RoomStateProvider } from "./room-state-context"
+import { RoomStateProvider, useRoomConnected } from "./room-state-context"
 import { playStream, stopStream, useStreamPlaying } from "./stream-audio"
 import { VolumeSlider } from "./volume-slider"
 
@@ -54,36 +54,41 @@ export async function action({ request, params }: ActionArgs) {
 }
 
 export default function RoomPage() {
-  const { room, queue } = useLoaderData<typeof loader>()
+  const { room, queue, socketUrl } = useLoaderData<typeof loader>()
   if ("error" in room) {
     return <p>Failed to load room: {room.error}</p>
   }
   if ("error" in queue) {
     return <p>Failed to load queue: {queue.error}</p>
   }
-  return <RoomPageContent room={room.data} queue={queue.data} />
+  return (
+    <RoomStateProvider
+      room={room.data}
+      queue={queue.data}
+      socketUrl={socketUrl}
+    >
+      <RoomPageContent room={room.data} />
+    </RoomStateProvider>
+  )
 }
 
-function RoomPageContent({ room, queue }: { room: Room; queue: Queue }) {
-  const { socketUrl, streamUrl, user } = useLoaderData<typeof loader>()
+function RoomPageContent({ room }: { room: Room }) {
+  const { streamUrl } = useLoaderData<typeof loader>()
   const playing = useStreamPlaying()
+  const connected = useRoomConnected()
 
   const play = useCallback(() => {
     playStream(`${streamUrl}&nocache=${Date.now()}`)
   }, [streamUrl])
 
   useEffect(() => {
+    if (!connected) return
     play()
     return () => stopStream()
-  }, [play])
+  }, [connected, play])
 
   return (
-    <RoomStateProvider
-      room={room}
-      queue={queue}
-      user={user}
-      socketUrl={socketUrl}
-    >
+    <>
       <main className="container isolate grid flex-1 content-start gap-4 py-4">
         <section className="panel sticky top-20 z-10 flex flex-col divide-y divide-white/10 border">
           <div className="flex flex-wrap items-center p-4">
@@ -110,7 +115,7 @@ function RoomPageContent({ room, queue }: { room: Room; queue: Queue }) {
           <NowPlaying />
         </div>
       </footer>
-    </RoomStateProvider>
+    </>
   )
 }
 
