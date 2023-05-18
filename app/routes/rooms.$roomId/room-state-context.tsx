@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState } from "react"
+import { createContext, useContext, useEffect, useMemo, useState } from "react"
 import { vinylSocket } from "~/data/vinyl-socket"
 import {
   type Queue,
@@ -39,9 +39,14 @@ export function RoomStateProvider({
   children: React.ReactNode
 }) {
   const [connected, setConnected] = useState(false)
-  const [members, setMembers] = useState(room.connections)
+  const [membersRecord, setMembersRecord] = useState(() => {
+    return Object.fromEntries(room.connections.map((user) => [user.id, user]))
+  })
   const [songProgress, setSongProgress] = useState(0)
   const [queue, setQueue] = useState(initialQueue)
+
+  const members = useMemo(() => Object.values(membersRecord), [membersRecord])
+
   const currentQueueItem = queue.items.find(
     (item) => item.id === queue.currentItem,
   )
@@ -76,15 +81,15 @@ export function RoomStateProvider({
           setSongProgress(message.seconds)
         }
         if (message.type === "user-entered-room") {
-          setMembers((members) => [...members, message.user])
+          setMembersRecord((members) => ({
+            ...members,
+            [message.user.id]: message.user,
+          }))
         }
         if (message.type === "user-left-room") {
-          setMembers((members) => {
-            const index = members.findIndex((m) => m.id === message.user)
-            if (index === -1) return members
-
-            const newMembers = [...members]
-            newMembers.splice(index, 1)
+          setMembersRecord((members) => {
+            const newMembers = { ...members }
+            delete newMembers[message.user]
             return newMembers
           })
         }
