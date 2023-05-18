@@ -30,8 +30,8 @@ type BaseFetchArgs<T> =
     }
 
 export type VinylApiResult<T> =
-  | { data: T; error?: undefined }
-  | { data?: undefined; error: string }
+  | { data: T; error?: null }
+  | { data?: null; error: string }
 
 export async function vinylFetch<T>({
   request,
