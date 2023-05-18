@@ -40,9 +40,13 @@ type SocketMessage = z.output<typeof socketMessageSchema>
 
 export function vinylSocket({
   url,
+  onConnect,
+  onDisconnect,
   onMessage,
 }: {
   url: string
+  onConnect: () => void
+  onDisconnect: () => void
   onMessage: (message: SocketMessage) => void
 }) {
   const controller = new AbortController()
@@ -61,6 +65,7 @@ export function vinylSocket({
     }
 
     console.info("Connected to socket")
+    onConnect()
 
     for await (const event of connection) {
       const [json, jsonError] = resultify(() => JSON.parse(event.data))
@@ -81,7 +86,9 @@ export function vinylSocket({
       onMessage(messageResult.data)
     }
 
-    console.info("Reconnecting...")
+    onDisconnect()
+
+    console.info("Disconnected from socket. Reconnecting...")
     await delay(2000)
     return run()
   }
