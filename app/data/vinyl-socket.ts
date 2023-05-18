@@ -2,7 +2,7 @@ import { z } from "zod"
 import { delay } from "~/helpers/delay"
 import { resultify } from "~/helpers/result"
 import { socket } from "~/helpers/socket"
-import { queueItemSchema } from "./vinyl-types"
+import { queueItemSchema, userSchema } from "./vinyl-types"
 
 const socketMessageSchema = z.union([
   z.object({
@@ -21,14 +21,18 @@ const socketMessageSchema = z.union([
   }),
   z.object({
     type: z.literal("queue-update"),
+    room: z.string(),
     items: z.array(queueItemSchema),
+    submitters: z.array(userSchema).nullish(),
   }),
   z.object({
     type: z.literal("queue-advance"),
+    room: z.string(),
     item: queueItemSchema,
   }),
   z.object({
     type: z.literal("player-time"),
+    room: z.string(),
     seconds: z.number(),
   }),
 ])
