@@ -38,6 +38,8 @@ export function RoomStateProvider({
       onConnect: () => setConnected(true),
       onDisconnect: () => setConnected(false),
       onMessage: (message) => {
+        if (message.room !== room.id) return
+
         if (message.type === "queue-update") {
           setQueue((queue) => ({
             ...queue,
@@ -76,7 +78,7 @@ export function RoomStateProvider({
         }
       },
     })
-  }, [socketUrl])
+  }, [room.id, socketUrl])
 
   useEffect(() => {
     if (!currentQueueItem) return
