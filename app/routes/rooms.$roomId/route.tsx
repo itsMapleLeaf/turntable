@@ -1,6 +1,7 @@
 import * as Popover from "@radix-ui/react-popover"
 import { useFetcher, useLoaderData } from "@remix-run/react"
 import { json, redirect, type ActionArgs, type LoaderArgs } from "@vercel/remix"
+import { type Video } from "@yimura/scraper"
 import { PlayCircle, Plus } from "lucide-react"
 import { useCallback, useEffect, useRef, useState, type RefObject } from "react"
 import { zfd } from "zod-form-data"
@@ -186,9 +187,6 @@ function AddSongForm() {
                 <SearchResults
                   query={debouncedSearchInput}
                   fetcher={searchFetcher}
-                  onSubmit={(url) => {
-                    trackSubmitFetcher.submit({ url }, { method: "POST" })
-                  }}
                 />
               )}
             </div>
@@ -208,11 +206,9 @@ function AddSongForm() {
 function SearchResults({
   query,
   fetcher,
-  onSubmit,
 }: {
   query: string
   fetcher: SearchFetcher
-  onSubmit: (url: string) => void
 }) {
   if (
     !fetcher.data ||
@@ -233,29 +229,39 @@ function SearchResults({
     <ul className="max-h-80 divide-y divide-white/10 overflow-y-scroll">
       {fetcher.data.data.map((video) => (
         <li key={video.id}>
-          <button
-            type="button"
-            className="button flex w-full items-center gap-3 rounded-none border-0 text-left ring-inset"
-            disabled={fetcher.state === "submitting"}
-            onClick={() => {
-              onSubmit(video.link)
-            }}
-          >
-            <img
-              src={video.thumbnail}
-              alt=""
-              className="aspect-square w-12 rounded border border-white/10 object-cover"
-            />
-            <div className="leading-none">
-              <div className="text-sm opacity-75">
-                {video.channel.name} &bull; {video.duration_raw}
-              </div>
-              <div>{video.title}</div>
-            </div>
-          </button>
+          <SearchResultItem video={video} />
         </li>
       ))}
     </ul>
+  )
+}
+
+function SearchResultItem({ video }: { video: Video }) {
+  const fetcher = useFetcher<typeof action>()
+  const pending = fetcher.state === "submitting"
+
+  return (
+    <button
+      type="button"
+      className="button flex w-full items-center gap-3 rounded-none border-0 text-left ring-inset"
+      disabled={fetcher.state === "submitting"}
+      onClick={() => {
+        fetcher.submit({ url: video.link }, { method: "POST" })
+      }}
+    >
+      <img
+        src={video.thumbnail}
+        alt=""
+        className="aspect-square w-12 rounded border border-white/10 object-cover"
+      />
+      <div className="flex-1 leading-none">
+        <div className="text-sm opacity-75">
+          {video.channel.name} &bull; {video.duration_raw}
+        </div>
+        <div>{video.title}</div>
+      </div>
+      {pending && <Spinner />}
+    </button>
   )
 }
 
