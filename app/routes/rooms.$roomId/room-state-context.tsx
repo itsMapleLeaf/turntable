@@ -38,7 +38,9 @@ export function RoomStateProvider({
       onConnect: () => setConnected(true),
       onDisconnect: () => setConnected(false),
       onMessage: (message) => {
-        if (message.room !== room.id) return
+        const matchesRoom =
+          message.room === room.id || `room:${message.room}` === room.id
+        if (!matchesRoom) return
 
         if (message.type === "queue-update") {
           setQueue((queue) => ({
