@@ -6,26 +6,7 @@ import {
   type Room,
   type User,
 } from "~/data/vinyl-types"
-
-let notification: Notification | undefined
-
-async function showNotification(options: { title: string; body: string }) {
-  try {
-    const permission = await Notification.requestPermission()
-    if (permission !== "granted") return
-
-    notification?.close()
-
-    notification = new Notification("Now playing", { ...options, silent: true })
-    notification.addEventListener("click", () => {
-      window.focus()
-      notification?.close()
-      notification = undefined
-    })
-  } catch (error) {
-    console.warn("Failed to show notification:", error)
-  }
-}
+import { showNotification } from "~/helpers/notifications"
 
 export function RoomStateProvider({
   room,
