@@ -151,9 +151,11 @@ function AddSongForm() {
                 event.currentTarget.select()
                 setPopoverOpen(true)
               }}
-              onMouseDown={(event) => {
-                event.currentTarget.select()
+              onMouseDown={() => {
                 setPopoverOpen(true)
+              }}
+              onClick={(event) => {
+                event.currentTarget.select()
               }}
             />
             <div
