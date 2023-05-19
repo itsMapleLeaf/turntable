@@ -147,15 +147,14 @@ function AddSongForm() {
               disabled={trackSubmitPending}
               value={searchInput}
               onChange={(event) => setSearchInput(event.currentTarget.value)}
-              onFocus={(event) => {
-                event.currentTarget.select()
+              // dumb hacks to keep the results open while the input is focused
+              onFocus={() => {
                 setPopoverOpen(true)
               }}
               onMouseDown={() => {
-                setPopoverOpen(true)
-              }}
-              onClick={(event) => {
-                event.currentTarget.select()
+                requestAnimationFrame(() => {
+                  setPopoverOpen(true)
+                })
               }}
             />
             <div
