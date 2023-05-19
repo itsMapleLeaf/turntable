@@ -39,7 +39,7 @@ export function RoomStateProvider({
       onDisconnect: () => setConnected(false),
       onMessage: (message) => {
         const matchesRoom =
-          message.room === room.id || `room:${message.room}` === room.id
+          message.room === room.id || message.room === `room:${room.id}`
         if (!matchesRoom) return
 
         if (message.type === "queue-update") {
