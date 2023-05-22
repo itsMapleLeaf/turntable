@@ -1,7 +1,7 @@
-import { Scraper, type Video } from "@yimura/scraper"
+import { Scraper, type Video } from "scraper-edge"
 import { Cache } from "~/helpers/cache"
 import { delay } from "../helpers/delay"
-export { type Video } from "@yimura/scraper"
+export { type Video } from "scraper-edge"
 
 const yt = new Scraper()
 

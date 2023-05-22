@@ -16,9 +16,6 @@ dependencies:
   '@vercel/remix':
     specifier: ^1.16.1
     version: 1.16.1(react-dom@18.2.0)(react@18.2.0)
-  '@yimura/scraper':
-    specifier: ^1.2.4
-    version: 1.2.4
   clsx:
     specifier: ^1.2.1
     version: 1.2.1
@@ -37,6 +34,9 @@ dependencies:
   react-dom:
     specifier: ^18.2.0
     version: 18.2.0(react@18.2.0)
+  scraper-edge:
+    specifier: ^1.1.0
+    version: 1.1.0
   zod:
     specifier: ^3.21.4
     version: 3.21.4
@@ -2544,10 +2544,6 @@ packages:
 
   /@web3-storage/multipart-parser@1.0.0:
     resolution: {integrity: sha512-BEO6al7BYqcnfX15W2cnGR+Q566ACXAT9UQykORCWW80lmkpWsnEob6zJS1ZVBKsSJC8+7vJkHwlp+lXG1UCdw==}
-
-  /@yimura/scraper@1.2.4:
-    resolution: {integrity: sha512-lHx/NqqZBOuDyYdUbXIigLGKKm2+Wtrx4rxGJ1dObZhOyth3CzFZbb1/SykVVzxxGYkFkhD9HHf74UWelaP2mw==}
-    dev: false
 
   /@zxing/text-encoding@0.9.0:
     resolution: {integrity: sha512-U/4aVJ2mxI0aDNI8Uq0wEhMgY+u4CNtEb0om3+y3+niDAsoTCOB33UF0sxpzqzdqXLqmvc+vZyAt4O8pPdfkwA==}
@@ -7173,6 +7169,10 @@ packages:
     resolution: {integrity: sha512-CtuThmgHNg7zIZWAXi3AsyIzA3n4xx7aNyjwC2VJldO2LMVDhFK+63xGqq6CsJH4rTAt6/M+N4GhZiDYPx9eUw==}
     dependencies:
       loose-envify: 1.4.0
+    dev: false
+
+  /scraper-edge@1.1.0:
+    resolution: {integrity: sha512-wl4J1JnigxpXVazb1W/3AHBBbRc9uh+Rwtw5WcRtMJv3uTNe6C4RieXQxoyqM2J7x37Ytk1i3a7eTaU7h98KoA==}
     dev: false
 
   /semver@5.7.1:
