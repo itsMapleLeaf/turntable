@@ -4,6 +4,6 @@ node_modules
 .env
 .cache
 .vscode
-
 build
 dist
+.vercel
