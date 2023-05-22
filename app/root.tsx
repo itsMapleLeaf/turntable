@@ -13,6 +13,8 @@ import { Header } from "./components/header"
 import { vinylApi } from "./data/vinyl-api.server"
 import style from "./style.css"
 
+export const config = { runtime: "edge" }
+
 export const meta: V2_MetaFunction = () => [{ title: "Turntable" }]
 
 export const links: LinksFunction = () => [
