@@ -74,6 +74,7 @@ export default function RoomPage() {
 
 function RoomPageContent({ room }: { room: Room }) {
   const connected = useRoomConnected()
+  const data = useLoaderData<typeof loader>()
   return (
     <>
       <main className="container isolate grid flex-1 content-start gap-4 py-4">
@@ -89,7 +90,7 @@ function RoomPageContent({ room }: { room: Room }) {
       <footer className="panel sticky bottom-0">
         <ProgressBar />
         <div className="container flex flex-col items-center gap-4 py-4 sm:flex-row">
-          {connected ? <Player /> : <Spinner />}
+          {connected ? <Player streamUrl={data.streamUrl} /> : <Spinner />}
           <NowPlaying />
         </div>
       </footer>

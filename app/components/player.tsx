@@ -1,40 +1,39 @@
-import { useLoaderData } from "@remix-run/react"
 import { PlayCircle } from "lucide-react"
 import { useEffect, useState } from "react"
 import { z } from "zod"
 import { delay } from "~/helpers/delay"
 import { useLocalStorageState } from "~/helpers/use-local-storage-state"
-import { type loader } from "~/routes/rooms.$roomId/route"
 
-export function Player() {
-  const { streamUrl } = useLoaderData<typeof loader>()
+const volumeSchema = z.number()
 
-  const [volume, setVolume] = useLocalStorageState("volume", 0.5, z.number())
+export function Player({ streamUrl }: { streamUrl: string }) {
+  const [volume, setVolume] = useLocalStorageState("volume", 0.5, volumeSchema)
+  const [playFailed, setPlayFailed] = useState(false)
   const muted = volume === 0
 
-  const [playFailed, setPlayFailed] = useState(false)
+  useEffect(() => {
+    const audio = ensureAudioElement()
+    audio.volume = volume
+  }, [volume])
 
   useEffect(() => {
-    if (playFailed) return
+    if (muted) return
 
     const audio = ensureAudioElement()
-
-    if (muted) {
-      audio.pause()
-      audio.src = ""
-      return
-    }
+    audio.src = `${streamUrl}&nocache=${Date.now()}`
 
     let running = true
 
     void (async () => {
       while (running) {
         if (audio.paused || audio.ended) {
-          audio.src = `${streamUrl}&nocache=${Date.now()}`
           try {
             await audio.play()
-          } catch {
+            setPlayFailed(false)
+          } catch (error) {
+            console.warn(error)
             setPlayFailed(true)
+            await delay(1000)
           }
         }
         await delay(100)
@@ -43,13 +42,19 @@ export function Player() {
 
     return () => {
       running = false
+      audio.src = ""
+      audio.pause()
     }
-  }, [streamUrl, muted, playFailed])
+  }, [muted, streamUrl])
 
   useEffect(() => {
     const audio = ensureAudioElement()
-    audio.volume = volume
-  }, [volume])
+    const handlePlaying = () => setPlayFailed(false)
+    audio.addEventListener("playing", handlePlaying)
+    return () => {
+      audio.removeEventListener("playing", handlePlaying)
+    }
+  }, [])
 
   return playFailed ? (
     <button
