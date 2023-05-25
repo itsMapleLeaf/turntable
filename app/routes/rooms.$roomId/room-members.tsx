@@ -10,7 +10,7 @@ export function RoomMembers() {
           <li key={member.id} className="relative">
             <Tooltip.Root delayDuration={150}>
               <Tooltip.Trigger className="flex h-6 w-6 items-center justify-center rounded-full border border-accent-700 bg-accent-900 text-xs font-medium leading-none">
-                {member.display_name[0]?.toUpperCase()}
+                {firstCharacter(member.display_name).toUpperCase()}
               </Tooltip.Trigger>
               <Tooltip.Portal>
                 <Tooltip.Content
@@ -27,4 +27,9 @@ export function RoomMembers() {
       </ul>
     </Tooltip.Provider>
   )
+}
+
+function firstCharacter(text: string) {
+  const codePoint = text.codePointAt(0)
+  return codePoint ? String.fromCodePoint(codePoint) : ""
 }
