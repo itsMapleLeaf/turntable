@@ -1,11 +1,12 @@
 import * as Popover from "@radix-ui/react-popover"
 import { useFetcher, useLoaderData } from "@remix-run/react"
 import { json, redirect, type ActionArgs, type LoaderArgs } from "@vercel/remix"
-import { PlayCircle, Plus } from "lucide-react"
-import { useCallback, useEffect, useRef, useState, type RefObject } from "react"
+import { Plus } from "lucide-react"
+import { useEffect, useRef, useState, type RefObject } from "react"
 import { type Video } from "scraper-edge"
 import { zfd } from "zod-form-data"
 import { Button } from "~/components/button"
+import { Player } from "~/components/player"
 import { Spinner } from "~/components/spinner"
 import { vinylApi } from "~/data/vinyl-api.server"
 import { getSessionToken } from "~/data/vinyl-session"
@@ -17,8 +18,6 @@ import { ProgressBar } from "./progress-bar"
 import { RoomMembers } from "./room-members"
 import { RoomQueue } from "./room-queue"
 import { RoomStateProvider, useRoomConnected } from "./room-state-context"
-import { playStream, stopStream, useStreamPlaying } from "./stream-audio"
-import { VolumeSlider } from "./volume-slider"
 
 export async function loader({ request, params }: LoaderArgs) {
   const roomId = params.roomId ?? raise("roomId not defined")
@@ -74,20 +73,7 @@ export default function RoomPage() {
 }
 
 function RoomPageContent({ room }: { room: Room }) {
-  const { streamUrl } = useLoaderData<typeof loader>()
-  const playing = useStreamPlaying()
   const connected = useRoomConnected()
-
-  const play = useCallback(() => {
-    playStream(`${streamUrl}&nocache=${Date.now()}`)
-  }, [streamUrl])
-
-  useEffect(() => {
-    if (!connected) return
-    play()
-    return () => stopStream()
-  }, [connected, play])
-
   return (
     <>
       <main className="container isolate grid flex-1 content-start gap-4 py-4">
@@ -98,21 +84,12 @@ function RoomPageContent({ room }: { room: Room }) {
           </div>
           <AddSongForm />
         </section>
-
         <RoomQueue />
       </main>
-
       <footer className="panel sticky bottom-0">
         <ProgressBar />
         <div className="container flex flex-col items-center gap-4 py-4 sm:flex-row">
-          {playing ? (
-            <VolumeSlider />
-          ) : (
-            <button type="button" onClick={play}>
-              <PlayCircle aria-hidden className="h-8 w-8" />
-              <span className="sr-only">Play</span>
-            </button>
-          )}
+          {connected ? <Player /> : <Spinner />}
           <NowPlaying />
         </div>
       </footer>
