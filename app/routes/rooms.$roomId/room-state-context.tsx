@@ -83,15 +83,18 @@ export function RoomStateProvider({
   }, [room.id, socketUrl])
 
   useEffect(() => {
-    if (!currentQueueItem) return
-
-    const { metadata } = currentQueueItem.track
-    navigator.mediaSession.metadata = new MediaMetadata({
-      title: metadata.title,
-      artist: metadata.artist,
-      ...(metadata.artwork && { artwork: [{ src: metadata.artwork }] }),
-    })
-    document.title = `${metadata.artist} - ${metadata.title} | Turntable`
+    const { metadata } = currentQueueItem?.track ?? {}
+    if (metadata) {
+      document.title = `${metadata.artist} - ${metadata.title} | Turntable`
+      navigator.mediaSession.metadata = new MediaMetadata({
+        title: metadata.title,
+        artist: metadata.artist,
+        ...(metadata.artwork && { artwork: [{ src: metadata.artwork }] }),
+      })
+    } else {
+      document.title = `Nothing Playing | Turntable`
+      navigator.mediaSession.metadata = null
+    }
   }, [currentQueueItem])
 
   return (
