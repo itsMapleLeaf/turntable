@@ -1,7 +1,6 @@
 import { PlayCircle } from "lucide-react"
 import { useEffect, useState } from "react"
 import { z } from "zod"
-import { delay } from "~/helpers/delay"
 import { useLocalStorageState } from "~/helpers/use-local-storage-state"
 
 const volumeSchema = z.number()
@@ -22,26 +21,12 @@ export function Player({ streamUrl }: { streamUrl: string }) {
     const audio = ensureAudioElement()
     audio.src = `${streamUrl}&nocache=${Date.now()}`
 
-    let running = true
-
-    void (async () => {
-      while (running) {
-        if (audio.paused || audio.ended) {
-          try {
-            await audio.play()
-            setPlayFailed(false)
-          } catch (error) {
-            console.warn(error)
-            setPlayFailed(true)
-            await delay(1000)
-          }
-        }
-        await delay(100)
-      }
-    })()
+    audio
+      .play()
+      .then(() => setPlayFailed(false))
+      .catch(() => setPlayFailed(true))
 
     return () => {
-      running = false
       audio.src = ""
       audio.pause()
     }
