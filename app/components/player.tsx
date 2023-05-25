@@ -13,7 +13,7 @@ export function Player({ streamUrl }: { streamUrl: string }) {
 
   useEffect(() => {
     const audio = ensureAudioElement()
-    audio.volume = volume
+    audio.volume = volume ** 2
   }, [volume])
 
   useEffect(() => {
