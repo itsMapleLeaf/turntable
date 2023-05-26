@@ -1,6 +1,5 @@
 import { useFetcher } from "@remix-run/react"
 import { json, type LoaderArgs, type TypedResponse } from "@vercel/remix"
-import { useEffect } from "react"
 import {
   searchYouTube,
   type Video,
@@ -17,17 +16,14 @@ export async function loader({
   return json(await searchYouTube(query))
 }
 
-export function useSearchFetcher(queryArg: string) {
+export function useSearchFetcher() {
   const fetcher = useFetcher<typeof loader>()
-  const query = queryArg.trim()
 
-  const doSearch = useEffectEvent((query: string) => {
-    fetcher.load(`/search?query=${query}`)
+  const load = useEffectEvent((query: string) => {
+    fetcher.load(`/search?query=${query.trim()}`)
   })
 
-  useEffect(() => doSearch(query), [doSearch, query])
-
-  return fetcher
+  return { ...fetcher, load }
 }
 
 export type SearchFetcher = ReturnType<typeof useSearchFetcher>
