@@ -67,11 +67,11 @@ export function Player({ streamUrl }: { streamUrl: string }) {
 }
 
 function ensureAudioElement() {
-  let element = document.querySelector<HTMLAudioElement>("[data-stream-player]")
-  if (!element) {
-    element = document.createElement("audio")
-    element.dataset.streamPlayer = ""
-    document.body.append(element)
-  }
-  return element
+  const existing = document.querySelector("[data-stream-player]")
+  if (existing instanceof HTMLAudioElement) return existing
+
+  const newElement = document.createElement("audio")
+  newElement.dataset.streamPlayer = ""
+  document.body.append(newElement)
+  return newElement
 }
