@@ -1,6 +1,6 @@
 import { useFetcher } from "@remix-run/react"
 import { json, type ActionArgs } from "@vercel/remix"
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 import { $params, $path } from "remix-routes"
 import { type Video } from "scraper-edge"
 import { zfd } from "zod-form-data"
@@ -19,6 +19,7 @@ export async function action({ request, params }: ActionArgs) {
 export function AddSongForm({ roomId }: { roomId: string }) {
   const searchFetcher = useSearchFetcher()
   const searchItems = searchFetcher.data?.data ?? []
+  const [searchInputEmpty, setSearchInputEmpty] = useState(true)
 
   return (
     // eslint-disable-next-line jsx-a11y/no-static-element-interactions
@@ -39,6 +40,11 @@ export function AddSongForm({ roomId }: { roomId: string }) {
           event.preventDefault()
           targets[mod(index - 1, targets.length)]?.focus()
         }
+
+        if (event.key === "Home") {
+          event.preventDefault()
+          targets[0]?.focus()
+        }
       }}
     >
       <div className="relative p-3">
@@ -48,7 +54,10 @@ export function AddSongForm({ roomId }: { roomId: string }) {
           className="input h-full"
           required
           data-focus-target
-          onChange={(event) => searchFetcher.load(event.target.value)}
+          onChange={(event) => {
+            searchFetcher.load(event.target.value)
+            setSearchInputEmpty(event.target.value.trim() === "")
+          }}
           onKeyDown={(event) => {
             if (event.key === "Enter") {
               event.preventDefault()
@@ -71,6 +80,9 @@ export function AddSongForm({ roomId }: { roomId: string }) {
             <SearchResultItem key={video.id} roomId={roomId} video={video} />
           ))}
         </div>
+      )}
+      {searchFetcher.data?.data?.length === 0 && !searchInputEmpty && (
+        <p className="p-3 opacity-75">No results found.</p>
       )}
     </div>
   )
