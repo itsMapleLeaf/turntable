@@ -87,16 +87,24 @@ function SearchResultItem({ roomId, video }: { roomId: string; video: Video }) {
   }, [fetcher.data?.error])
 
   return (
-    <fetcher.Form
-      action={$path("/rooms/:roomId/submit", { roomId })}
-      method="POST"
-    >
+    <>
       <input type="hidden" name="url" value={video.link} />
       <button
-        className="button flex w-full items-center gap-3 rounded-none border-none bg-transparent text-left ring-inset"
-        disabled={pending}
+        type="button"
+        className="button flex w-full items-center gap-3 rounded-none border-none bg-transparent text-left ring-inset data-[pending]:opacity-75"
+        data-pending={pending || undefined}
         data-focus-target
         data-search-result-item
+        onClick={() => {
+          if (pending) return
+          fetcher.submit(
+            { url: video.link },
+            {
+              action: $path("/rooms/:roomId/submit", { roomId }),
+              method: "POST",
+            },
+          )
+        }}
       >
         <img
           src={video.thumbnail}
@@ -109,8 +117,13 @@ function SearchResultItem({ roomId, video }: { roomId: string; video: Video }) {
           </div>
           <div>{video.title}</div>
         </div>
-        {pending && <Spinner />}
+        <div
+          data-pending={pending || undefined}
+          className="opacity-0 transition-opacity data-[pending]:opacity-100"
+        >
+          <Spinner />
+        </div>
       </button>
-    </fetcher.Form>
+    </>
   )
 }
