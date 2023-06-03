@@ -1,15 +1,12 @@
 import { useFetcher } from "@remix-run/react"
 import { json, type ActionArgs } from "@vercel/remix"
-import { useCombobox } from "downshift"
-import { Plus } from "lucide-react"
-import { forwardRef, useRef, type ForwardedRef } from "react"
+import { useEffect } from "react"
 import { $params, $path } from "remix-routes"
 import { type Video } from "scraper-edge"
 import { zfd } from "zod-form-data"
-import { Button } from "~/components/button"
 import { Spinner } from "~/components/spinner"
 import { vinylApi } from "~/data/vinyl-api.server"
-import { useRect } from "~/helpers/use-rect"
+import { mod } from "~/helpers/math"
 import { useSearchFetcher } from "~/routes/search"
 
 export async function action({ request, params }: ActionArgs) {
@@ -20,149 +17,100 @@ export async function action({ request, params }: ActionArgs) {
 }
 
 export function AddSongForm({ roomId }: { roomId: string }) {
-  const trackSubmitFetcher = useFetcher<typeof action>()
-  const trackSubmitPending = trackSubmitFetcher.state === "submitting"
-
   const searchFetcher = useSearchFetcher()
   const searchItems = searchFetcher.data?.data ?? []
 
-  const combobox = useCombobox({
-    items: searchItems,
-    onInputValueChange: ({ inputValue }) => {
-      if (inputValue) searchFetcher.load(inputValue)
-    },
-    onSelectedItemChange: ({ selectedItem }) => {
-      if (!selectedItem) return
-      trackSubmitFetcher.submit(
-        { url: selectedItem.link },
-        { method: "POST", action: `/rooms/${roomId}/submit`, replace: true },
-      )
-    },
-    stateReducer(state, { type, changes }) {
-      if (
-        type === useCombobox.stateChangeTypes.InputKeyDownEnter ||
-        type === useCombobox.stateChangeTypes.ItemClick
-      ) {
-        return {
-          ...changes,
-          isOpen: true,
-          highlightedIndex: state.highlightedIndex,
-          inputValue: state.inputValue,
-        }
-      }
-      return changes
-    },
-  })
-
-  const anchorRef = useRef<HTMLDivElement | null>(null)
-  const anchorRect = useRect(anchorRef)
-
   return (
-    <trackSubmitFetcher.Form
-      method="POST"
-      action={$path("/rooms/:roomId/submit", { roomId })}
+    // eslint-disable-next-line jsx-a11y/no-static-element-interactions
+    <div
       className="divide-y divide-white/10"
+      onKeyDown={(event) => {
+        const targets = event.currentTarget.querySelectorAll<HTMLElement>(
+          "[data-focus-target]",
+        )
+        const index = [...targets].indexOf(event.target as HTMLElement)
+
+        if (event.key === "ArrowDown") {
+          event.preventDefault()
+          targets[mod(index + 1, targets.length)]?.focus()
+        }
+
+        if (event.key === "ArrowUp") {
+          event.preventDefault()
+          targets[mod(index - 1, targets.length)]?.focus()
+        }
+      }}
     >
-      <div className="flex flex-row gap-2 p-3" ref={anchorRef}>
-        <div className="relative flex-1">
-          <input
-            {...combobox.getInputProps({
-              onFocus: (event) => event.currentTarget.select(),
-            })}
-            name="url"
-            placeholder="Search or enter song URL"
-            className="input h-full"
-            required
-          />
-          <div
-            data-visible={
-              searchFetcher.state === "loading" ||
-              trackSubmitPending ||
-              undefined
+      <div className="relative p-3">
+        <input
+          name="url"
+          placeholder="Search or paste song URL (YouTube and WaveDistrict supported)"
+          className="input h-full"
+          required
+          data-focus-target
+          onChange={(event) => searchFetcher.load(event.target.value)}
+          onKeyDown={(event) => {
+            if (event.key === "Enter") {
+              event.preventDefault()
+              document
+                .querySelector<HTMLElement>("[data-search-result-item]")
+                ?.click()
             }
-            className="pointer-events-none absolute inset-y-0 right-0 flex items-center justify-center px-3 opacity-0 transition-opacity data-[visible]:opacity-100"
-          >
-            <Spinner />
-          </div>
-        </div>
-        <Button
-          pending={trackSubmitPending}
-          label="Add"
-          pendingLabel="Adding..."
-          iconElement={<Plus />}
+          }}
         />
+        <div
+          data-visible={searchFetcher.state === "loading" || undefined}
+          className="pointer-events-none absolute inset-y-0 right-3 flex items-center justify-center px-3 opacity-0 transition-opacity data-[visible]:opacity-100"
+        >
+          <Spinner />
+        </div>
       </div>
-
-      <div
-        {...combobox.getMenuProps()}
-        data-open={combobox.isOpen || undefined}
-        className="panel hidden max-h-80 overflow-y-scroll border bg-transparent data-[open]:block"
-        style={{ width: anchorRect?.width }}
-      >
-        {/* {debouncedSearchInput &&
-          searchFetcher.state === "idle" &&
-          searchItems.length === 0 && (
-            // eslint-disable-next-line react/no-unescaped-entities
-            <p className="p-3">No results found for "{debouncedSearchInput}"</p>
-          )} */}
-        {searchItems.map((video, index) => (
-          <SearchResultItem
-            {...combobox.getItemProps({
-              item: video,
-              index,
-            })}
-            key={video.id}
-            roomId={roomId}
-            video={video}
-            pending={
-              trackSubmitFetcher.submission?.formData?.get("url") === video.link
-            }
-          />
-        ))}
-      </div>
-
-      {!trackSubmitPending && trackSubmitFetcher.data?.error ? (
-        <p className="p-3 text-sm text-error-400">
-          {trackSubmitFetcher.data?.error}
-        </p>
-      ) : null}
-    </trackSubmitFetcher.Form>
+      {searchItems.length > 0 && (
+        <div className="max-h-80 overflow-y-scroll">
+          {searchItems.map((video) => (
+            <SearchResultItem key={video.id} roomId={roomId} video={video} />
+          ))}
+        </div>
+      )}
+    </div>
   )
 }
 
-const SearchResultItem = forwardRef(function SearchResultItem(
-  {
-    roomId,
-    video,
-    pending,
-    ...props
-  }: {
-    roomId: string
-    video: Video
-    pending: boolean
-  },
-  ref: ForwardedRef<HTMLButtonElement>,
-) {
+function SearchResultItem({ roomId, video }: { roomId: string; video: Video }) {
+  const fetcher = useFetcher<typeof action>()
+  const pending = fetcher.state === "submitting"
+
+  useEffect(() => {
+    if (fetcher.data?.error) {
+      console.error(fetcher.data.error)
+    }
+  }, [fetcher.data?.error])
+
   return (
-    <button
-      {...props}
-      ref={ref}
-      type="button"
-      className="button flex w-full items-center gap-3 rounded-none border-0 text-left ring-inset aria-selected:bg-accent-200/10 aria-selected:text-accent-200"
-      disabled={pending}
+    <fetcher.Form
+      action={$path("/rooms/:roomId/submit", { roomId })}
+      method="POST"
     >
-      <img
-        src={video.thumbnail}
-        alt=""
-        className="aspect-square w-12 rounded border border-white/10 object-cover"
-      />
-      <div className="flex-1 leading-none">
-        <div className="text-sm opacity-75">
-          {video.channel.name} &bull; {video.duration_raw}
+      <input type="hidden" name="url" value={video.link} />
+      <button
+        className="button flex w-full items-center gap-3 rounded-none border-none bg-transparent text-left ring-inset"
+        disabled={pending}
+        data-focus-target
+        data-search-result-item
+      >
+        <img
+          src={video.thumbnail}
+          alt=""
+          className="aspect-square w-12 rounded border border-white/10 object-cover"
+        />
+        <div className="flex-1 leading-none">
+          <div className="text-sm opacity-75">
+            {video.channel.name} &bull; {video.duration_raw}
+          </div>
+          <div>{video.title}</div>
         </div>
-        <div>{video.title}</div>
-      </div>
-      {pending && <Spinner />}
-    </button>
+        {pending && <Spinner />}
+      </button>
+    </fetcher.Form>
   )
-})
+}
