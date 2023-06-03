@@ -1,4 +1,4 @@
-import { useLoaderData } from "@remix-run/react"
+import { Outlet, useLoaderData } from "@remix-run/react"
 import { json, redirect, type LoaderArgs } from "@vercel/remix"
 import { Player } from "~/components/player"
 import { Spinner } from "~/components/spinner"
@@ -6,11 +6,9 @@ import { vinylApi } from "~/data/vinyl-api.server"
 import { getSessionToken } from "~/data/vinyl-session"
 import { type Room } from "~/data/vinyl-types"
 import { raise } from "~/helpers/raise"
-import { AddSongForm } from "../rooms.$roomId.submit"
 import { NowPlaying } from "./now-playing"
 import { ProgressBar } from "./progress-bar"
 import { RoomMembers } from "./room-members"
-import { RoomQueue } from "./room-queue"
 import { RoomStateProvider, useRoomConnected } from "./room-state-context"
 
 export async function loader({ request, params }: LoaderArgs) {
@@ -62,15 +60,14 @@ function RoomPageContent({ room }: { room: Room }) {
   const data = useLoaderData<typeof loader>()
   return (
     <>
-      <main className="container isolate grid flex-1 content-start gap-4 py-4">
-        <section className="panel z-10 flex flex-col divide-y divide-white/10 border">
-          <div className="flex flex-wrap items-center p-4">
-            <h1 className="flex-1 text-2xl font-light">{room.name}</h1>
-            <RoomMembers />
-          </div>
-          <AddSongForm roomId={room.id} />
+      <main className="container grid flex-1 content-start gap-4 py-4">
+        <section className="panel flex flex-wrap items-center p-4">
+          <h1 className="flex-1 text-2xl font-light">{room.name}</h1>
+          <RoomMembers />
         </section>
-        <RoomQueue />
+        <section>
+          <Outlet />
+        </section>
       </main>
       <footer className="panel sticky bottom-0">
         <ProgressBar />
