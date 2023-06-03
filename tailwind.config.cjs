@@ -17,6 +17,9 @@ module.exports = {
       fontFamily: {
         sans: `"Pathway Extreme", sans-serif`,
       },
+      borderColor: {
+        current: "currentColor",
+      },
     },
   },
   plugins: [],
