@@ -24,7 +24,7 @@ export class Cache<T> {
 
   set(key: string, data: T): void {
     if (this.cache.size >= this.options.maxSize) {
-      this.cache.delete(this.cache.keys().next().value)
+      this.cache.delete(this.cache.keys().next().value as string)
     }
     this.cache.set(key, { data, expiry: Date.now() + this.options.expiryTime })
   }
