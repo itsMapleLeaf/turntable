@@ -3,21 +3,19 @@ import { json, type ActionArgs } from "@vercel/remix"
 import { useCombobox } from "downshift"
 import { Plus } from "lucide-react"
 import { forwardRef, useRef, type ForwardedRef } from "react"
+import { $params, $path } from "remix-routes"
 import { type Video } from "scraper-edge"
 import { zfd } from "zod-form-data"
 import { Button } from "~/components/button"
 import { Spinner } from "~/components/spinner"
 import { vinylApi } from "~/data/vinyl-api.server"
-import { raise } from "~/helpers/raise"
 import { useRect } from "~/helpers/use-rect"
 import { useSearchFetcher } from "~/routes/search"
 
 export async function action({ request, params }: ActionArgs) {
+  const { roomId } = $params("/rooms/:roomId/submit", params)
   const body = zfd.formData({ url: zfd.text() }).parse(await request.formData())
-  const result = await vinylApi(request).submitSong(
-    params.roomId ?? raise("roomId not defined"),
-    body.url,
-  )
+  const result = await vinylApi(request).submitSong(roomId, body.url)
   return json({ error: result.error })
 }
 
@@ -62,7 +60,7 @@ export function AddSongForm({ roomId }: { roomId: string }) {
   return (
     <trackSubmitFetcher.Form
       method="POST"
-      action={`/rooms/${roomId}/submit`}
+      action={$path("/rooms/:roomId/submit", { roomId })}
       className="divide-y divide-white/10"
     >
       <div className="flex flex-row gap-2 p-3" ref={anchorRef}>
