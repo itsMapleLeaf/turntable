@@ -8,7 +8,7 @@ export default function RoomHistoryPage() {
   const queue = useRoomQueue()
   const current = useCurrentRoomQueueItem()
   const currentIndex = queue.items.findIndex((i) => i.id === current?.id)
-  const historyItems = queue.items.slice(0, currentIndex)
+  const historyItems = queue.items.slice(0, currentIndex).reverse()
 
   return (
     <section className="grid gap-4">
