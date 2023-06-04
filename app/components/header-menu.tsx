@@ -1,6 +1,6 @@
 import * as Popover from "@radix-ui/react-popover"
 import { Link } from "@remix-run/react"
-import { ListPlus, LogIn, LogOut, Menu, UserPlus } from "lucide-react"
+import { LogIn, LogOut, Menu, UserPlus } from "lucide-react"
 
 export function HeaderMenu({ loggedIn }: { loggedIn: boolean }) {
   return (
@@ -15,14 +15,15 @@ export function HeaderMenu({ loggedIn }: { loggedIn: boolean }) {
           align="end"
           sideOffset={8}
         >
-          <Popover.Close asChild>
+          {/* playing things in multiple rooms kills vinyl */}
+          {/* <Popover.Close asChild>
             <Link
               to="/rooms/new"
               className="link flex flex-row items-center gap-2 px-3 py-2"
             >
               <ListPlus aria-hidden className="h-5 w-5" /> New Room
             </Link>
-          </Popover.Close>
+          </Popover.Close> */}
           {loggedIn ? (
             <Popover.Close asChild>
               <Link
