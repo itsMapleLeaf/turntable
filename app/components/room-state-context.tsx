@@ -56,10 +56,13 @@ export function RoomStateProvider({
             currentItem: message.item.id,
           }))
           setSongProgress(0)
-          void showNotification({
-            title: "Now playing",
-            body: `${message.item.track.metadata.artist} - ${message.item.track.metadata.title}`,
-          })
+
+          if (!document.hasFocus()) {
+            void showNotification({
+              title: "Now playing",
+              body: `${message.item.track.metadata.artist} - ${message.item.track.metadata.title}`,
+            })
+          }
         }
 
         if (message.type === "player-time") {
