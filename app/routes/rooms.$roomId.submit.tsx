@@ -16,10 +16,32 @@ export async function action({ request, params }: ActionArgs) {
   return json({ error: result.error })
 }
 
+function useTrackSubmitFetcher({ roomId }: { roomId: string }) {
+  const { data, state, submit: baseSubmit } = useFetcher<typeof action>()
+  const pending = state === "submitting"
+
+  // cringe
+  useEffect(() => {
+    if (!pending && data?.error) alert(`Failed to submit song: ${data.error}`)
+  }, [data?.error, pending])
+
+  const submit = (url: string) => {
+    if (pending) return
+    baseSubmit(
+      { url },
+      { action: $path("/rooms/:roomId/submit", { roomId }), method: "POST" },
+    )
+  }
+
+  return { data, pending, submit }
+}
+
 export function AddSongForm({ roomId }: { roomId: string }) {
   const searchFetcher = useSearchFetcher()
   const searchItems = searchFetcher.data?.data ?? []
   const [searchInputEmpty, setSearchInputEmpty] = useState(true)
+
+  const trackSubmitFetcher = useTrackSubmitFetcher({ roomId })
 
   return (
     // eslint-disable-next-line jsx-a11y/no-static-element-interactions
@@ -47,32 +69,51 @@ export function AddSongForm({ roomId }: { roomId: string }) {
         }
       }}
     >
-      <div className="relative p-3">
-        <input
-          name="url"
-          placeholder="Search or paste song URL (YouTube and WaveDistrict supported)"
-          className="input h-full"
-          required
-          data-focus-target
-          onChange={(event) => {
-            searchFetcher.load(event.target.value)
-            setSearchInputEmpty(event.target.value.trim() === "")
-          }}
-          onKeyDown={(event) => {
-            if (event.key === "Enter") {
-              event.preventDefault()
-              document
-                .querySelector<HTMLElement>("[data-search-result-item]")
-                ?.click()
+      <div className="grid gap-3 p-3">
+        <div className="relative">
+          <input
+            name="url"
+            placeholder="Search YouTube"
+            className="input h-full"
+            required
+            data-focus-target
+            onChange={(event) => {
+              searchFetcher.load(event.target.value)
+              setSearchInputEmpty(event.target.value.trim() === "")
+            }}
+            onKeyDown={(event) => {
+              if (event.key === "Enter") {
+                event.preventDefault()
+                document
+                  .querySelector<HTMLElement>("[data-search-result-item]")
+                  ?.click()
+              }
+            }}
+          />
+          <div
+            data-visible={
+              searchFetcher.state === "loading" ||
+              trackSubmitFetcher.pending ||
+              undefined
             }
-          }}
-        />
-        <div
-          data-visible={searchFetcher.state === "loading" || undefined}
-          className="pointer-events-none absolute inset-y-0 right-3 flex items-center justify-center px-3 opacity-0 transition-opacity data-[visible]:opacity-100"
-        >
-          <Spinner />
+            className="pointer-events-none absolute inset-y-0 right-0 flex items-center justify-center px-3 opacity-0 transition-opacity data-[visible]:opacity-100"
+          >
+            <Spinner />
+          </div>
         </div>
+        <p>
+          Or{" "}
+          <button
+            type="button"
+            className="text-accent-200 underline underline-offset-[3px] hover:no-underline"
+            onClick={() => {
+              const url = prompt("Enter a YouTube or WaveDistrict URL")
+              if (url) trackSubmitFetcher.submit(url)
+            }}
+          >
+            submit a URL directly
+          </button>
+        </p>
       </div>
       {searchItems.length > 0 && (
         <div className="max-h-80 overflow-y-scroll">
@@ -89,34 +130,17 @@ export function AddSongForm({ roomId }: { roomId: string }) {
 }
 
 function SearchResultItem({ roomId, video }: { roomId: string; video: Video }) {
-  const fetcher = useFetcher<typeof action>()
-  const pending = fetcher.state === "submitting"
-
-  useEffect(() => {
-    if (fetcher.data?.error) {
-      console.error(fetcher.data.error)
-    }
-  }, [fetcher.data?.error])
-
+  const fetcher = useTrackSubmitFetcher({ roomId })
   return (
     <>
       <input type="hidden" name="url" value={video.link} />
       <button
         type="button"
         className="button flex w-full items-center gap-3 rounded-none border-none bg-transparent text-left ring-inset data-[pending]:opacity-75"
-        data-pending={pending || undefined}
+        data-pending={fetcher.pending || undefined}
         data-focus-target
         data-search-result-item
-        onClick={() => {
-          if (pending) return
-          fetcher.submit(
-            { url: video.link },
-            {
-              action: $path("/rooms/:roomId/submit", { roomId }),
-              method: "POST",
-            },
-          )
-        }}
+        onClick={() => fetcher.submit(video.link)}
       >
         <img
           src={video.thumbnail}
@@ -130,7 +154,7 @@ function SearchResultItem({ roomId, video }: { roomId: string; video: Video }) {
           <div>{video.title}</div>
         </div>
         <div
-          data-pending={pending || undefined}
+          data-pending={fetcher.pending || undefined}
           className="opacity-0 transition-opacity data-[pending]:opacity-100"
         >
           <Spinner />
