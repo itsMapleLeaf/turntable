@@ -21,6 +21,7 @@ export function QueueItemList({ items }: { items: QueueItem[] }) {
           title={metadata.title}
           artist={metadata.artist}
           addedBy={getSubmitterName(submitter)}
+          addedFrom={metadata.source}
           durationSeconds={metadata.duration}
           artwork={metadata.artwork}
           isActive={current?.id === id}

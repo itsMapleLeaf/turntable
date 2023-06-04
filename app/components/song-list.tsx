@@ -12,6 +12,7 @@ export function SongListItem({
   durationSeconds,
   title,
   addedBy,
+  addedFrom,
   isActive,
 }: {
   link: string
@@ -20,6 +21,7 @@ export function SongListItem({
   durationSeconds: number
   title: string
   addedBy: string
+  addedFrom: string
   isActive?: boolean
 }) {
   return (
@@ -45,7 +47,7 @@ export function SongListItem({
               colonNotation: true,
               secondsDecimalDigits: 0,
             })}{" "}
-            &bull; added by {addedBy}
+            &bull; added by {addedBy} &bull; {addedFrom}
           </p>
           <p className="text-lg/5">{title}</p>
         </div>
