@@ -1,20 +1,25 @@
+import { parse } from "@conform-to/zod"
 import { Link, useActionData, useSearchParams } from "@remix-run/react"
 import { json, redirect, type ActionArgs } from "@vercel/remix"
-import { zfd } from "zod-form-data"
+import { z } from "zod"
 import { AuthForm } from "~/components/auth-form"
 import { vinylApi } from "~/data/vinyl-api.server"
 import { createSession } from "~/data/vinyl-session"
 
+const schema = z.object({
+  username: z.string().min(1, "Username is required"),
+  password: z.string().min(1, "Password is required"),
+})
+
 export async function action({ request }: ActionArgs) {
-  const form = zfd
-    .formData({
-      username: zfd.text(),
-      password: zfd.text(),
-    })
-    .parse(await request.formData())
+  const submission = parse(await request.formData(), {
+    schema,
+  })
+  if (!submission.value) {
+    return json({ error: submission.error }, 400)
+  }
 
-  const response = await vinylApi(request).login(form)
-
+  const response = await vinylApi(request).login(submission.value)
   if (!response.data) {
     return json({ error: response.error }, 400)
   }
