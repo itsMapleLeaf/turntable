@@ -24,7 +24,7 @@ export function ProgressBar() {
           width={`${progress * 100}%`}
           height={1}
           strokeWidth={4}
-          className="stroke-accent-500/75"
+          className="stroke-accent-500/75 transition-[width] ease-linear"
           vectorEffect="non-scaling-stroke"
           filter="url(#glow)"
         />
@@ -34,7 +34,7 @@ export function ProgressBar() {
           width={`${progress * 100}%`}
           height={1}
           shapeRendering="crispEdges"
-          className="fill-accent-300"
+          className="fill-accent-300 transition-[width] ease-linear"
         />
       </svg>
     </div>
