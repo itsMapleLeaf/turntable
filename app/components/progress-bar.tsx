@@ -1,22 +1,42 @@
-import { type CSSProperties } from "react"
 import { clamp } from "~/helpers/math"
 import {
   useCurrentRoomQueueItem,
   useRoomSongProgress,
 } from "./room-state-context"
 
-const glowRadius = 4
-
 export function ProgressBar() {
   const item = useCurrentRoomQueueItem()
   const progressSeconds = useRoomSongProgress()
-  const progress = clamp(0.1, 0, 1)
+  const progress = clamp(
+    item ? progressSeconds / item.track.metadata.duration : 0,
+    0,
+    1,
+  )
   return (
-    <div className="relative h-px w-full bg-white/25">
-      <div
-        className="absolute inset-0 origin-left scale-x-[--progress] bg-accent-300 shadow-[0_0_calc((1/var(--progress))*16px)_calc((1/var(--progress))*1px)_theme(colors.accent.500)] transition-transform ease-linear"
-        style={{ "--progress": progress } as CSSProperties}
-      />
+    <div className="h-px w-full bg-white/25">
+      <svg className="h-8 w-full -translate-y-1/2">
+        <filter id="glow" x="-1500%" y="-1500%" width="3000%" height="3000%">
+          <feGaussianBlur stdDeviation={4} edgeMode="duplicate" />
+        </filter>
+        <rect
+          x={0}
+          y="50%"
+          width={`${progress * 100}%`}
+          height={1}
+          strokeWidth={4}
+          className="stroke-accent-500/75"
+          vectorEffect="non-scaling-stroke"
+          filter="url(#glow)"
+        />
+        <rect
+          x={0}
+          y="50%"
+          width={`${progress * 100}%`}
+          height={1}
+          shapeRendering="crispEdges"
+          className="fill-accent-300"
+        />
+      </svg>
     </div>
   )
 }
