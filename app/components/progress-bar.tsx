@@ -1,3 +1,4 @@
+import { type CSSProperties } from "react"
 import { clamp } from "~/helpers/math"
 import {
   useCurrentRoomQueueItem,
@@ -9,24 +10,12 @@ const glowRadius = 4
 export function ProgressBar() {
   const item = useCurrentRoomQueueItem()
   const progressSeconds = useRoomSongProgress()
-  const progress = clamp(
-    progressSeconds / (item?.track.metadata.duration ?? 240),
-    0,
-    1,
-  )
+  const progress = clamp(0.1, 0, 1)
   return (
     <div className="relative h-px w-full bg-white/25">
       <div
-        className="absolute -inset-y-1 origin-left rounded-full bg-accent-500 opacity-30 transition-[right] ease-linear"
-        style={{
-          left: -glowRadius,
-          right: `calc(${-glowRadius}px + ${(1 - progress) * 100}%)`,
-          filter: `blur(${glowRadius}px)`,
-        }}
-      />
-      <div
-        className="absolute inset-0 origin-left bg-accent-300 transition-transform ease-linear"
-        style={{ transform: `scaleX(${progress})` }}
+        className="absolute inset-0 origin-left scale-x-[--progress] bg-accent-300 shadow-[0_0_calc((1/var(--progress))*16px)_calc((1/var(--progress))*1px)_theme(colors.accent.500)] transition-transform ease-linear"
+        style={{ "--progress": progress } as CSSProperties}
       />
     </div>
   )
