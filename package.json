@@ -32,6 +32,7 @@
     "pretty-ms": "^8.0.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
+    "react-virtuoso": "^4.3.8",
     "scraper-edge": "^1.1.0",
     "zod": "^3.21.4",
     "zod-form-data": "^2.0.1"
