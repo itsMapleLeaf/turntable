@@ -58,19 +58,25 @@ function FancyImage(props: ComponentPropsWithoutRef<"img">) {
 
   useEffect(() => {
     const image = ref.current as HTMLImageElement
-
-    if (image.complete) {
-      image.style.opacity = "1"
-    } else {
-      image.style.opacity = "0"
-      image.addEventListener("load", () => {
-        image.animate([{ opacity: 0 }, { opacity: 1 }], {
-          duration: 500,
-          fill: "forwards",
-        })
+    image.style.opacity = "0"
+    void imageLoaded(image).then(() => {
+      image.animate([{ opacity: 0 }, { opacity: 1 }], {
+        duration: 500,
+        fill: "forwards",
       })
-    }
+    })
   }, [])
 
   return <img alt="" {...props} ref={ref} />
+}
+
+function imageLoaded(image: HTMLImageElement) {
+  return new Promise((resolve, reject) => {
+    if (image.complete) {
+      resolve(image)
+    } else {
+      image.addEventListener("load", () => resolve(image), { once: true })
+      image.addEventListener("error", reject, { once: true })
+    }
+  })
 }
