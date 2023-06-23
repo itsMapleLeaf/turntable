@@ -72,6 +72,7 @@ export async function vinylFetch<T>({
 
 const authResponseSchema = z.object({
   token: z.string(),
+  user: userSchema,
 })
 
 export const vinylApi = {
