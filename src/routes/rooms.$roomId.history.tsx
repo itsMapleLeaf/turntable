@@ -1,5 +1,5 @@
-import { QueueItemList } from "src/components/queue-item-list"
-import { useCurrentRoomQueueItem, useRoomQueue } from "src/components/room-state-context"
+import { QueueItemList } from "~/components/queue-item-list"
+import { useCurrentRoomQueueItem, useRoomQueue } from "~/components/room-state-context"
 
 export default function RoomHistoryPage() {
   const queue = useRoomQueue()

@@ -1,7 +1,7 @@
 import { useParams } from "@remix-run/react"
 import { $params } from "remix-routes"
-import { QueueItemList } from "src/components/queue-item-list"
-import { useCurrentRoomQueueItem, useRoomQueue } from "src/components/room-state-context"
+import { QueueItemList } from "~/components/queue-item-list"
+import { useCurrentRoomQueueItem, useRoomQueue } from "~/components/room-state-context"
 import { AddSongForm } from "./rooms.$roomId.submit"
 
 export default function RoomQueuePage() {

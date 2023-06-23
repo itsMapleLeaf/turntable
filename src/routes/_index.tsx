@@ -1,7 +1,7 @@
 import { Link, useLoaderData } from "@remix-run/react"
 import { json, type LoaderArgs, redirect } from "@vercel/remix"
 import { Disc } from "lucide-react"
-import { Button } from "src/components/button"
+import { Button } from "~/components/button"
 import { vinylApi } from "~/data/vinyl-api.server"
 
 export async function loader({ request }: LoaderArgs) {
