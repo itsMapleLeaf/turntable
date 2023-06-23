@@ -1,0 +1,100 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :focus {
+    outline: none;
+  }
+
+  :focus-visible {
+    @apply ring-2 ring-accent-700;
+  }
+
+  ::-webkit-scrollbar {
+    @apply w-2;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-black/50;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-white/25;
+  }
+  ::-webkit-scrollbar-thumb:active {
+    @apply bg-white/50;
+  }
+
+  ::-webkit-scrollbar-corner {
+    @apply bg-black;
+  }
+}
+
+@layer components {
+  .active-press {
+    @apply transition active:scale-[0.97] active:duration-0;
+  }
+
+  .container {
+    @apply mx-auto w-full max-w-screen-lg px-4 md:px-8;
+  }
+
+  .link {
+    @apply transition hover:text-accent-200;
+  }
+
+  .button {
+    @apply link active-press flex flex-row items-center gap-2 rounded-md border border-white/10 p-3 leading-none hover:border-accent-700 hover:bg-black/25 disabled:opacity-50;
+  }
+  .button > svg {
+    @apply h-5 w-5;
+  }
+
+  .input {
+    @apply block w-full min-w-0 flex-1 rounded-md border border-white/10 bg-transparent/50 px-3 py-2 shadow-inner shadow-black/50 transition disabled:opacity-50;
+  }
+
+  .panel {
+    @apply border-white/10 bg-black/75 shadow-md shadow-black/50 backdrop-blur-lg;
+  }
+  .panel-interactive {
+    @apply active-press hover:border-accent-700 hover:text-accent-200;
+  }
+
+  @keyframes fade-in-zoom {
+    from {
+      opacity: 0;
+      transform: scale(0.9);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  @keyframes fade-out-zoom {
+    from {
+      opacity: 1;
+      transform: scale(1);
+    }
+    to {
+      opacity: 0;
+      transform: scale(0.9);
+    }
+  }
+
+  .radix-fade-zoom-transition {
+    transform-origin: var(--radix-popper-transform-origin);
+  }
+  .radix-fade-zoom-transition[data-state="open"],
+  .radix-fade-zoom-transition[data-state="delayed-open"],
+  .radix-fade-zoom-transition[data-state="instant-open"] {
+    animation: fade-in-zoom theme(transitionDuration.DEFAULT)
+      theme(transitionTimingFunction.DEFAULT);
+  }
+  .radix-fade-zoom-transition[data-state="closed"] {
+    animation: fade-out-zoom theme(transitionDuration.DEFAULT)
+      theme(transitionTimingFunction.DEFAULT);
+  }
+}
