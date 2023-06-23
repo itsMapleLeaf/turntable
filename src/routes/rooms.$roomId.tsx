@@ -1,5 +1,5 @@
 import { NavLink, Outlet, useLoaderData } from "@remix-run/react"
-import { json, redirect, type LoaderArgs } from "@vercel/remix"
+import { json, type LoaderArgs, redirect } from "@vercel/remix"
 import { $path } from "remix-routes"
 import { Player } from "~/components/player"
 import { Spinner } from "~/components/spinner"
@@ -10,10 +10,7 @@ import { raise } from "~/helpers/errors"
 import { NowPlaying } from "../components/now-playing"
 import { ProgressBar } from "../components/progress-bar"
 import { RoomMembers } from "../components/room-members"
-import {
-  RoomStateProvider,
-  useRoomConnected,
-} from "../components/room-state-context"
+import { RoomStateProvider, useRoomConnected } from "../components/room-state-context"
 
 export async function loader({ request, params }: LoaderArgs) {
   const roomId = params.roomId ?? raise("roomId not defined")

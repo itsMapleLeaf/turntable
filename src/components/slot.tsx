@@ -11,8 +11,7 @@ export function Slot({
 } & Record<string, unknown>) {
   const elementProps = element.props as Record<string, unknown>
 
-  const innerClassName =
-    typeof elementProps.className === "string" ? elementProps.className : ""
+  const innerClassName = typeof elementProps.className === "string" ? elementProps.className : ""
 
   return cloneElement(element, {
     ...props,

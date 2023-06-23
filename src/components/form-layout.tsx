@@ -39,9 +39,7 @@ export function FormLayout({
           pendingLabel={submitTextPending}
           iconElement={<Wand2 />}
         />
-        {submit.error ? (
-          <p className="text-error-400">{toError(submit.error).message}</p>
-        ) : null}
+        {submit.error ? <p className="text-error-400">{toError(submit.error).message}</p> : null}
       </form>
     </main>
   )

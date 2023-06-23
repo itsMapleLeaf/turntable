@@ -31,10 +31,9 @@ export async function searchYouTube(
     return { data: results.videos }
   } catch (error) {
     return {
-      error:
-        error instanceof Error
-          ? `YouTube search failed: ${error.message}`
-          : "YouTube search failed",
+      error: error instanceof Error
+        ? `YouTube search failed: ${error.message}`
+        : "YouTube search failed",
     }
   }
 }

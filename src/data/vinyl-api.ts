@@ -1,7 +1,7 @@
 import { z } from "zod"
 import { raise } from "../helpers/errors"
 import { getSessionToken } from "./vinyl-session"
-import { queueSchema, roomSchema, userSchema, type Room } from "./vinyl-types"
+import { queueSchema, type Room, roomSchema, userSchema } from "./vinyl-types"
 
 const apiUrl = new URL(
   "/v1/",
@@ -16,17 +16,17 @@ type Json = string | number | boolean | null | Json[] | { [key: string]: Json }
 
 type BaseFetchArgs<T> =
   | {
-      method: "GET"
-      path: string
-      schema: z.Schema<T>
-      body?: never
-    }
+    method: "GET"
+    path: string
+    schema: z.Schema<T>
+    body?: never
+  }
   | {
-      method: "POST" | "PATCH" | "PUT" | "DELETE"
-      path: string
-      schema: z.Schema<T>
-      body: Json
-    }
+    method: "POST" | "PATCH" | "PUT" | "DELETE"
+    path: string
+    schema: z.Schema<T>
+    body: Json
+  }
 
 export async function vinylFetch<T>({
   method,
