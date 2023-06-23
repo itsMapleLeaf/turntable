@@ -9,26 +9,22 @@ const userPromise = vinylApi.getUser().catch(() => undefined)
 
 export function App() {
   const user = suspend(userPromise)
-  return (
-    <div className="relative isolate flex min-h-screen flex-col bg-black/50">
-      {user ? (
-        <main>
-          <h1>welcome to turntable</h1>
-          {JSON.stringify(user)}
-          <button
-            type="button"
-            onClick={() => {
-              destroySession()
-              location.reload()
-            }}
-          >
-            sign out
-          </button>
-        </main>
-      ) : (
-        <AuthForms />
-      )}
-    </div>
+  return user ? (
+    <main>
+      <h1>welcome to turntable</h1>
+      {JSON.stringify(user)}
+      <button
+        type="button"
+        onClick={() => {
+          destroySession()
+          location.reload()
+        }}
+      >
+        sign out
+      </button>
+    </main>
+  ) : (
+    <AuthForms />
   )
 }
 
