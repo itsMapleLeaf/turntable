@@ -1,5 +1,6 @@
 {
   "name": "turntable",
+  "type": "module",
   "private": true,
   "engines": {
     "node": "18"
