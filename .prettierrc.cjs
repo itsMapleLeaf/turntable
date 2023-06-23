@@ -1,4 +1,5 @@
 module.exports = {
   ...require("@itsmapleleaf/configs/prettier"),
-  plugins: ["prettier-plugin-tailwindcss"],
+  // this is slowing down the editor
+  // plugins: ["prettier-plugin-tailwindcss"],
 }
