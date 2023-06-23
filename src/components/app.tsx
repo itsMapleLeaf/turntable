@@ -1,7 +1,7 @@
 import { useState } from "react"
 import { vinylApi } from "../data/vinyl-api"
 import { createSession, destroySession } from "../data/vinyl-session"
-import { suspend } from "../suspense"
+import { suspend } from "../helpers/suspense"
 import { AuthForm } from "./auth-form"
 
 // eslint-disable-next-line unicorn/prefer-top-level-await
