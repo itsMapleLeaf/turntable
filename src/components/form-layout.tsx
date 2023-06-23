@@ -1,7 +1,6 @@
-import { Form } from "@remix-run/react"
 import { Wand2 } from "lucide-react"
-import { type Nullish } from "~/helpers/types"
-import { usePendingSubmit } from "~/helpers/use-pending-submit"
+import { toError } from "~/helpers/errors"
+import { useAsyncCallback } from "~/helpers/use-async-callback"
 import { Button } from "./button"
 
 export type FormLayoutProps = {
@@ -9,7 +8,7 @@ export type FormLayoutProps = {
   children: React.ReactNode
   submitText: string
   submitTextPending: string
-  error: Nullish<string>
+  onSubmit: (event: React.FormEvent<HTMLFormElement>) => unknown
 }
 
 export function FormLayout({
@@ -17,25 +16,33 @@ export function FormLayout({
   children,
   submitText,
   submitTextPending,
-  error,
+  onSubmit,
 }: FormLayoutProps) {
-  const pending = usePendingSubmit()
+  const submit = useAsyncCallback(
+    async (event: React.FormEvent<HTMLFormElement>) => {
+      event.preventDefault()
+      await onSubmit(event)
+    },
+  )
+
   return (
     <main className="container py-4">
-      <Form
-        method="POST"
+      <form
         className="panel container mt-4 flex max-w-sm flex-col items-center gap-4 border p-4"
+        onSubmit={submit}
       >
         <h1 className="text-3xl font-light">{title}</h1>
         {children}
         <Button
-          pending={pending}
           label={submitText}
+          pending={submit.loading}
           pendingLabel={submitTextPending}
           iconElement={<Wand2 />}
         />
-        {error ? <p className="text-error-400">{error}</p> : null}
-      </Form>
+        {submit.error ? (
+          <p className="text-error-400">{toError(submit.error).message}</p>
+        ) : null}
+      </form>
     </main>
   )
 }
