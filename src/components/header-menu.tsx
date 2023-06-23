@@ -1,8 +1,9 @@
 import * as Popover from "@radix-ui/react-popover"
-import { Link } from "@remix-run/react"
-import { LogIn, LogOut, Menu, UserPlus } from "lucide-react"
+import { LogOut, Menu } from "lucide-react"
+import { useAuthContext } from "./auth-context"
 
-export function HeaderMenu({ loggedIn }: { loggedIn: boolean }) {
+export function HeaderMenu() {
+  const auth = useAuthContext()
   return (
     <Popover.Root>
       <Popover.Trigger className="link p-1">
@@ -15,48 +16,14 @@ export function HeaderMenu({ loggedIn }: { loggedIn: boolean }) {
           align="end"
           sideOffset={8}
         >
-          {/* playing things in multiple rooms kills vinyl */}
-          {
-            /* <Popover.Close asChild>
-            <Link
-              to="/rooms/new"
+          <Popover.Close asChild>
+            <button
               className="link flex flex-row items-center gap-2 px-3 py-2"
+              onClick={auth.logout}
             >
-              <ListPlus aria-hidden className="h-5 w-5" /> New Room
-            </Link>
-          </Popover.Close> */
-          }
-          {loggedIn
-            ? (
-              <Popover.Close asChild>
-                <Link
-                  to="/sign-out"
-                  className="link flex flex-row items-center gap-2 px-3 py-2"
-                >
-                  <LogOut aria-hidden className="h-5 w-5" /> Sign Out
-                </Link>
-              </Popover.Close>
-            )
-            : (
-              <>
-                <Popover.Close asChild>
-                  <Link
-                    to="/sign-in"
-                    className="link flex flex-row items-center gap-2 px-3 py-2"
-                  >
-                    <LogIn aria-hidden className="h-5 w-5" /> Sign In
-                  </Link>
-                </Popover.Close>
-                <Popover.Close asChild>
-                  <Link
-                    to="/sign-up"
-                    className="link flex flex-row items-center gap-2 px-3 py-2"
-                  >
-                    <UserPlus aria-hidden className="h-5 w-5" /> Sign Up
-                  </Link>
-                </Popover.Close>
-              </>
-            )}
+              <LogOut aria-hidden className="h-5 w-5" /> Sign Out
+            </button>
+          </Popover.Close>
         </Popover.Content>
       </Popover.Portal>
     </Popover.Root>
