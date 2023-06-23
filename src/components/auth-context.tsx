@@ -3,7 +3,7 @@ import { vinylApi } from "~/data/vinyl-api"
 import { createSession, destroySession } from "~/data/vinyl-session"
 import { type User } from "~/data/vinyl-types"
 import { raise } from "~/helpers/errors"
-import { suspend } from "./suspense"
+import { suspend } from "../helpers/suspense"
 
 function useAuthProvider() {
   const [userPromise, setUserPromise] = useState(() => vinylApi.getUser().catch(() => undefined))
