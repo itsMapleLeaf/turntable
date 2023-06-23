@@ -1,5 +1,5 @@
 import { z } from "zod"
-import { raise } from "./helpers/raise"
+import { raise } from "../helpers/raise"
 import { getSessionToken } from "./vinyl-session"
 import { queueSchema, roomSchema, userSchema, type Room } from "./vinyl-types"
 

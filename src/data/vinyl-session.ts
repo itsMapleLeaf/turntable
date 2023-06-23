@@ -1,28 +1,13 @@
-import { createCookie } from "@vercel/remix"
-
-const vinylTokenCookie = createCookie("vinyl-token", {
-  httpOnly: true,
-  path: "/",
-})
+const sessionKey = "vinyl-token"
 
 export function createSession(token: string) {
-  return vinylTokenCookie.serialize(token)
+  localStorage.setItem(sessionKey, token)
 }
 
 export function destroySession() {
-  return vinylTokenCookie.serialize("", { maxAge: 0 })
+  localStorage.removeItem(sessionKey)
 }
 
-export async function getSessionToken(request: Request) {
-  const result = (await vinylTokenCookie.parse(
-    request.headers.get("Cookie") ?? "",
-  )) as unknown
-  if (result == null) return null
-
-  if (typeof result !== "string") {
-    console.warn(`Unexpected token type: ${typeof result}`)
-    return null
-  }
-
-  return result
+export function getSessionToken() {
+  return localStorage.getItem(sessionKey)
 }

@@ -1,4 +1,4 @@
-import { vinylApi } from "./vinyl-api"
+import { vinylApi } from "./data/vinyl-api"
 
 // eslint-disable-next-line unicorn/prefer-top-level-await
 const userPromise = vinylApi.getUser().catch(() => "hehe")
