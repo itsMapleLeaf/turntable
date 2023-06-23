@@ -59,11 +59,7 @@ export async function vinylFetch<T>({
       )
     }
 
-    const json = (await response.json()) as unknown
-
-    console.info("[vinyl]", method, url.pathname, json)
-
-    return schema.parse(json)
+    return schema.parse(await response.json())
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error)
     throw new Error(`${method} ${url.pathname} failed  (${errorMessage})`)
