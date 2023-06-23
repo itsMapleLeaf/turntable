@@ -90,7 +90,6 @@ export const vinylApi = {
     })
   },
 
-  // todo: namespace these?
   getUser() {
     return vinylFetch({
       method: "GET",
