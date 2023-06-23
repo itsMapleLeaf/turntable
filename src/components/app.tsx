@@ -1,34 +1,49 @@
-import { useState } from "react"
+import { Suspense, useState } from "react"
+import { ErrorBoundary } from "react-error-boundary"
 import { vinylApi } from "../data/vinyl-api"
 import { createSession, destroySession } from "../data/vinyl-session"
-import { suspend } from "../helpers/suspense"
 import { AuthForm } from "./auth-form"
-
-// eslint-disable-next-line unicorn/prefer-top-level-await
-const userPromise = vinylApi.getUser().catch(() => undefined)
+import { Await } from "./await"
+import { Spinner } from "./spinner"
 
 export function App() {
-  const user = suspend(userPromise)
-  return user ? (
-    <main>
-      <h1>welcome to turntable</h1>
-      {JSON.stringify(user)}
-      <button
-        type="button"
-        onClick={() => {
-          destroySession()
-          location.reload()
-        }}
-      >
-        sign out
-      </button>
-    </main>
-  ) : (
-    <AuthForms />
+  const [userPromise, setUserPromise] = useState(() =>
+    vinylApi.getUser().catch(() => undefined),
+  )
+  return (
+    <ErrorBoundary fallback={<p>shit hit the fan lol</p>}>
+      <Suspense fallback={<Spinner />}>
+        <Await promise={userPromise}>
+          {(user) =>
+            user ? (
+              <main>
+                <h1>welcome to turntable</h1>
+                {JSON.stringify(user)}
+                <button
+                  type="button"
+                  onClick={() => {
+                    destroySession()
+                    setUserPromise(Promise.resolve(undefined))
+                  }}
+                >
+                  sign out
+                </button>
+              </main>
+            ) : (
+              <AuthForms
+                onSuccess={() => {
+                  setUserPromise(vinylApi.getUser().catch(() => undefined))
+                }}
+              />
+            )
+          }
+        </Await>
+      </Suspense>
+    </ErrorBoundary>
   )
 }
 
-function AuthForms() {
+function AuthForms(props: { onSuccess: () => void }) {
   const [view, setView] = useState<"signin" | "register">("signin")
   return view === "signin" ? (
     <AuthForm
@@ -38,7 +53,7 @@ function AuthForms() {
       onSubmit={async (data) => {
         const result = await vinylApi.login(data)
         createSession(result.token)
-        location.reload()
+        props.onSuccess()
       }}
       footer={
         <p>
@@ -61,7 +76,7 @@ function AuthForms() {
       onSubmit={async (data) => {
         const result = await vinylApi.register(data)
         createSession(result.token)
-        location.reload()
+        props.onSuccess()
       }}
       footer={
         <p>
