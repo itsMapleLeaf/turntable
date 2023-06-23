@@ -1,8 +1,8 @@
 import { useState } from "react"
-import { AuthForm } from "./components/auth-form"
-import { vinylApi } from "./data/vinyl-api"
-import { createSession, destroySession } from "./data/vinyl-session"
-import { suspend } from "./suspense"
+import { vinylApi } from "../data/vinyl-api"
+import { createSession, destroySession } from "../data/vinyl-session"
+import { suspend } from "../suspense"
+import { AuthForm } from "./auth-form"
 
 // eslint-disable-next-line unicorn/prefer-top-level-await
 const userPromise = vinylApi.getUser().catch(() => undefined)
