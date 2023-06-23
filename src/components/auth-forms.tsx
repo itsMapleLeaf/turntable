@@ -1,21 +1,24 @@
 import { useState } from "react"
-import { AuthForm } from "~/components/auth-form"
+import { AuthForm, type AuthFormSubmit } from "~/components/auth-form"
 import { vinylApi } from "~/data/vinyl-api"
-import { createSession } from "~/data/vinyl-session"
+import { useAuthContext } from "./auth-context"
 
-export function AuthForms(props: { onSuccess: () => void }) {
+export function AuthForms() {
   const [view, setView] = useState<"signin" | "register">("signin")
+  const auth = useAuthContext()
+
+  const handleSubmit: AuthFormSubmit = async (data) => {
+    const result = await vinylApi.login(data)
+    auth.login(result.token)
+  }
+
   return view === "signin"
     ? (
       <AuthForm
         title="Sign In"
         submitText="Sign in"
         submitTextPending="Signing in..."
-        onSubmit={async (data) => {
-          const result = await vinylApi.login(data)
-          createSession(result.token)
-          props.onSuccess()
-        }}
+        onSubmit={handleSubmit}
         footer={
           <p>
             Don&apos;t have an account?{" "}
@@ -35,11 +38,7 @@ export function AuthForms(props: { onSuccess: () => void }) {
         title="Register"
         submitText="Register"
         submitTextPending="Registering..."
-        onSubmit={async (data) => {
-          const result = await vinylApi.register(data)
-          createSession(result.token)
-          props.onSuccess()
-        }}
+        onSubmit={handleSubmit}
         footer={
           <p>
             Already have an account?{" "}

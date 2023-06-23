@@ -1,13 +1,18 @@
 import { FormLayout, type FormLayoutProps } from "./form-layout"
 import { Label } from "./label"
 
+export type AuthFormSubmit = (data: {
+  username: string
+  password: string
+}) => unknown
+
 export function AuthForm({
   footer,
   onSubmit,
   ...props
 }: Omit<FormLayoutProps, "children" | "onSubmit"> & {
   footer: React.ReactNode
-  onSubmit: (data: { username: string; password: string }) => unknown
+  onSubmit: AuthFormSubmit
 }) {
   return (
     <FormLayout
