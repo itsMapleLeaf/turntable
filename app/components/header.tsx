@@ -17,16 +17,16 @@ export function Header({ user }: { user: Promise<VinylApiResult<User>> }) {
           <Suspense>
             <Await resolve={user}>
               {user =>
-                <>
-                  {user.data && (
+                user.data && (
+                  <>
                     <p className="text-right leading-none">
                       <span className="text-sm opacity-75">Signed in as</span>
                       <br />
                       {user.data.display_name}
                     </p>
-                  )}
-                  <HeaderMenu loggedIn={!!user.data} />
-                </>}
+                    <HeaderMenu />
+                  </>
+                )}
             </Await>
           </Suspense>
         </div>

@@ -1,28 +1,27 @@
-import { Link, useLoaderData } from "@remix-run/react"
-import { json, type LoaderArgs, redirect } from "@vercel/remix"
+import { Await, Link, useLoaderData } from "@remix-run/react"
+import { defer, type LoaderArgs } from "@vercel/remix"
 import { Disc } from "lucide-react"
 import { Button } from "~/components/button"
-import { vinylApi } from "~/data/vinyl-api.server"
+import { vinylApi, type VinylApiResult } from "~/data/vinyl-api.server"
+import { type Room } from "~/data/vinyl-types"
 
-export async function loader({ request }: LoaderArgs) {
+export function loader({ request }: LoaderArgs) {
   const api = vinylApi(request)
-  const [user, rooms] = await Promise.all([api.getUser(), api.getRooms()])
-  return user.data
-    ? json({ rooms })
-    : redirect(`/sign-in?redirect=${request.url}`)
+  return defer({ rooms: api.getRooms() })
 }
 
 export default function RoomListPage() {
+  const { rooms } = useLoaderData<typeof loader>()
   return (
     <main className="container flex-1 flex-col p-4">
-      <RoomListPageContent />
+      <Await resolve={rooms}>
+        {rooms => <RoomListPageContent rooms={rooms} />}
+      </Await>
     </main>
   )
 }
 
-function RoomListPageContent() {
-  const { rooms } = useLoaderData<typeof loader>()
-
+function RoomListPageContent({ rooms }: { rooms: VinylApiResult<Room[]> }) {
   if ("error" in rooms) {
     return <p className="text-center">{rooms.error}</p>
   }

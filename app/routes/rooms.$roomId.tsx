@@ -1,5 +1,5 @@
-import { NavLink, Outlet, useLoaderData } from "@remix-run/react"
-import { json, type LoaderArgs, redirect } from "@vercel/remix"
+import { Await, NavLink, Outlet, useLoaderData } from "@remix-run/react"
+import { defer, type LoaderArgs } from "@vercel/remix"
 import { $path } from "remix-routes"
 import { Player } from "~/components/player"
 import { Spinner } from "~/components/spinner"
@@ -12,52 +12,61 @@ import { ProgressBar } from "../components/progress-bar"
 import { RoomMembers } from "../components/room-members"
 import { RoomStateProvider, useRoomConnected } from "../components/room-state-context"
 
-export async function loader({ request, params }: LoaderArgs) {
+export function loader({ request, params }: LoaderArgs) {
   const roomId = params.roomId ?? raise("roomId not defined")
-
   const api = vinylApi(request)
 
-  const [user, room, queue, token] = await Promise.all([
-    api.getUser(),
-    api.getRoom(roomId),
-    api.getRoomQueue(roomId),
-    getSessionToken(request),
-  ])
+  async function loadData() {
+    const token = await getSessionToken(request)
+    if (!token) return null
 
-  if (!user.data || !token) {
-    return redirect(`/sign-in?redirect=${request.url}`)
+    const [room, queue] = await Promise.all([
+      api.getRoom(roomId),
+      api.getRoomQueue(roomId),
+    ])
+
+    return {
+      room,
+      queue,
+      streamUrl: api.getRoomStreamUrl(roomId, token).href,
+      socketUrl: api.getGatewayUrl(token).href,
+    }
   }
 
-  return json({
-    user: user.data,
-    room,
-    queue,
-    streamUrl: api.getRoomStreamUrl(roomId, token).href,
-    socketUrl: api.getGatewayUrl(token).href,
+  return defer({
+    data: loadData(),
   })
 }
 
 export default function RoomPage() {
-  const { room, queue, socketUrl } = useLoaderData<typeof loader>()
-  if ("error" in room) {
-    return <p>Failed to load room: {room.error}</p>
-  }
-  if ("error" in queue) {
-    return <p>Failed to load queue: {queue.error}</p>
-  }
+  const { data } = useLoaderData<typeof loader>()
   return (
-    <RoomStateProvider
-      room={room.data}
-      queue={queue.data}
-      socketUrl={socketUrl}
-    >
-      <RoomPageContent room={room.data} />
-    </RoomStateProvider>
+    <Await resolve={data}>
+      {data => {
+        if (!data) {
+          return <p>Not logged in</p>
+        }
+        if ("error" in data.room) {
+          return <p>Failed to load room: {data.room.error}</p>
+        }
+        if ("error" in data.queue) {
+          return <p>Failed to load queue: {data.queue.error}</p>
+        }
+        return (
+          <RoomStateProvider
+            room={data.room.data}
+            queue={data.queue.data}
+            socketUrl={data.socketUrl}
+          >
+            <RoomPageContent room={data.room.data} streamUrl={data.streamUrl} />
+          </RoomStateProvider>
+        )
+      }}
+    </Await>
   )
 }
 
-function RoomPageContent({ room }: { room: Room }) {
-  const data = useLoaderData<typeof loader>()
+function RoomPageContent({ room, streamUrl }: { room: Room; streamUrl: string }) {
   const connected = useRoomConnected()
   const roomId = room.id
   return (
@@ -89,7 +98,7 @@ function RoomPageContent({ room }: { room: Room }) {
       <footer className="panel sticky bottom-0">
         <ProgressBar />
         <div className="container flex flex-col items-center gap-4 py-4 sm:flex-row">
-          {connected ? <Player streamUrl={data.streamUrl} /> : <Spinner />}
+          {connected ? <Player streamUrl={streamUrl} /> : <Spinner />}
           <NowPlaying />
         </div>
       </footer>

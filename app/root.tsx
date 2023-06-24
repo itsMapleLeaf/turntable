@@ -1,9 +1,38 @@
-import { Links, LiveReload, Meta, Outlet, Scripts, useLoaderData } from "@remix-run/react"
-import { defer, type LinksFunction, type LoaderArgs, type V2_MetaFunction } from "@vercel/remix"
+import {
+  Await,
+  Links,
+  LiveReload,
+  Meta,
+  NavLink,
+  Outlet,
+  Scripts,
+  useActionData,
+  useLoaderData,
+  useSearchParams,
+} from "@remix-run/react"
+import {
+  type ActionArgs,
+  defer,
+  json,
+  type LinksFunction,
+  type LoaderArgs,
+  redirect,
+  type V2_MetaFunction,
+} from "@vercel/remix"
+import { LogIn, UserPlus } from "lucide-react"
+import { Suspense } from "react"
+import { z } from "zod"
+import { zfd } from "zod-form-data"
+import { Label } from "~/components/label"
 import background from "./assets/background.jpg"
 import favicon from "./assets/favicon.png"
+import { Button } from "./components/button"
+import { FormLayout } from "./components/form-layout"
 import { Header } from "./components/header"
+import { Spinner } from "./components/spinner"
 import { vinylApi } from "./data/vinyl-api.server"
+import { createSession } from "./data/vinyl-session"
+import { usePendingSubmit } from "./helpers/use-pending-submit"
 import style from "./style.css"
 
 export const config = { runtime: "edge" }
@@ -18,6 +47,54 @@ export const links: LinksFunction = () => [
 export function loader({ request }: LoaderArgs) {
   const api = vinylApi(request)
   return defer({ user: api.getUser() })
+}
+
+export async function action({ request }: ActionArgs) {
+  const schema = z.union([
+    zfd.formData({
+      action: zfd.text(z.literal("login")),
+      username: zfd.text(),
+      password: zfd.text(),
+    }),
+    zfd.formData({
+      action: zfd.text(z.literal("register")),
+      username: zfd.text(),
+      password: zfd.text(),
+      passwordRepeat: zfd.text(),
+    }),
+  ])
+
+  const form = schema.parse(await request.formData())
+
+  if (form.action === "login") {
+    const api = vinylApi(request)
+    const result = await api.login(form)
+    if (!result.data) {
+      return json({ error: result.error }, { status: 400 })
+    }
+
+    return redirect(request.headers.get("referer") ?? "/", {
+      headers: { "Set-Cookie": await createSession(result.data.token) },
+    })
+  }
+
+  if (form.action === "register") {
+    if (form.password !== form.passwordRepeat) {
+      return json({ error: "Passwords do not match" }, { status: 400 })
+    }
+
+    const api = vinylApi(request)
+    const result = await api.register(form)
+    if (!result.data) {
+      return json({ error: result.error }, { status: 400 })
+    }
+
+    return redirect(request.headers.get("referer") ?? "/", {
+      headers: { "Set-Cookie": await createSession(result.data.token) },
+    })
+  }
+
+  throw new Error("Invalid action")
 }
 
 export default function Root() {
@@ -53,11 +130,111 @@ export default function Root() {
       >
         <div className="relative isolate flex min-h-screen flex-col bg-black/50">
           <Header user={user} />
-          <Outlet />
+          <Suspense fallback="Loading...">
+            <Await resolve={user}>
+              {user => user.data ? <Outlet /> : <AuthForms />}
+            </Await>
+          </Suspense>
         </div>
         <Scripts />
         <LiveReload />
       </body>
     </html>
   )
+}
+
+function AuthForms() {
+  const [searchParams] = useSearchParams()
+  const view = searchParams.get("auth-view") ?? "login"
+  const pending = usePendingSubmit()
+  const { error } = useActionData<typeof action>() ?? {}
+
+  return view === "login"
+    ? (
+      <FormLayout title="Sign In" error={error}>
+        <Label text="Username">
+          <input
+            name="username"
+            type="text"
+            placeholder="awesomeuser"
+            className="input"
+            required
+          />
+        </Label>
+        <Label text="Password">
+          <input
+            name="password"
+            type="password"
+            placeholder="•••••••"
+            className="input"
+            required
+          />
+        </Label>
+        <Button
+          pending={pending}
+          label="Sign in"
+          pendingLabel="Signing in..."
+          iconElement={<LogIn />}
+          element={<button type="submit" name="action" value="login" />}
+        />
+        <p>
+          Don't have an account?{" "}
+          <NavLink
+            to="?auth-view=register"
+            replace
+            className="link underline inline-flex gap-2 items-center"
+          >
+            {state => <>Create one {state.isPending && <Spinner size={4} />}</>}
+          </NavLink>
+        </p>
+      </FormLayout>
+    )
+    : (
+      <FormLayout title="Register" error={error}>
+        <Label text="Username">
+          <input
+            name="username"
+            type="text"
+            placeholder="awesomeuser"
+            className="input"
+            required
+          />
+        </Label>
+        <Label text="Password">
+          <input
+            name="password"
+            type="password"
+            placeholder="•••••••"
+            className="input"
+            required
+          />
+        </Label>
+        <Label text="Confirm Password">
+          <input
+            name="passwordRepeat"
+            type="password"
+            placeholder="•••••••"
+            className="input"
+            required
+          />
+        </Label>
+        <Button
+          pending={pending}
+          label="Register"
+          pendingLabel="Registering..."
+          iconElement={<UserPlus />}
+          element={<button type="submit" name="action" value="register" />}
+        />
+        <p>
+          Already have an account?{" "}
+          <NavLink
+            to="?auth-view=login"
+            replace
+            className="link underline inline-flex gap-2 items-center"
+          >
+            {state => <>Sign in {state.isPending && <Spinner size={4} />}</>}
+          </NavLink>
+        </p>
+      </FormLayout>
+    )
 }
