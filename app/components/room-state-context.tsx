@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useMemo, useState } from "react"
-import { vinylSocket } from "~/data/vinyl-socket"
+import { vinylEvents } from "~/data/vinyl-events"
 import { type Queue, type QueueItem, type Room, type User } from "~/data/vinyl-types"
 import { showNotification } from "~/helpers/notifications"
 
@@ -28,15 +28,17 @@ export function RoomStateProvider({
   )
 
   useEffect(() => {
-    return vinylSocket({
+    return vinylEvents({
       url: socketUrl,
       onConnect: () => setConnected(true),
       onDisconnect: () => setConnected(false),
       onMessage: (message) => {
-        const matchesRoom = message.room === room.id || message.room === `room:${room.id}`
-        if (!matchesRoom) return
+        if (message.type === "track-activation-error" && message.queue === queue.id) {
+          console.warn("failed to activate track", message.track)
+          // todo actual error i guess
+        }
 
-        if (message.type === "queue-update") {
+        if (message.type === "queue-update" && message.id === queue.id) {
           setQueue((queue) => ({
             ...queue,
             items: message.items,
@@ -44,7 +46,7 @@ export function RoomStateProvider({
           }))
         }
 
-        if (message.type === "queue-advance") {
+        if (message.type === "queue-advance" && message.queue === queue.id) {
           setQueue((queue) => ({
             ...queue,
             currentItem: message.item.id,
@@ -59,16 +61,18 @@ export function RoomStateProvider({
           }
         }
 
-        if (message.type === "player-time") {
+        if (message.type === "player-time" && message.room === `room:${room.id}`) {
           setSongProgress(message.seconds)
         }
-        if (message.type === "user-entered-room") {
+
+        if (message.type === "user-entered-room" && message.room === `room:${room.id}`) {
           setMembersRecord((members) => ({
             ...members,
             [message.user.id]: message.user,
           }))
         }
-        if (message.type === "user-left-room") {
+
+        if (message.type === "user-left-room" && message.room === `room:${room.id}`) {
           setMembersRecord((members) => {
             const newMembers = { ...members }
             delete newMembers[message.user]
@@ -77,7 +81,7 @@ export function RoomStateProvider({
         }
       },
     })
-  }, [room.id, socketUrl])
+  }, [queue.id, room.id, socketUrl])
 
   useEffect(() => {
     const { metadata } = currentQueueItem?.track ?? {}
