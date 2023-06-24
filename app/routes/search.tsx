@@ -1,10 +1,6 @@
 import { useFetcher } from "@remix-run/react"
 import { json, type LoaderArgs, type TypedResponse } from "@vercel/remix"
-import {
-  searchYouTube,
-  type Video,
-  type YouTubeResult,
-} from "~/data/youtube.server"
+import { searchYouTube, type Video, type YouTubeResult } from "~/data/youtube.server"
 import { useEffectEvent } from "~/helpers/use-effect-event"
 
 export async function loader({

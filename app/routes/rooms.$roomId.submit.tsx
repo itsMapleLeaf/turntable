@@ -1,5 +1,5 @@
 import { useFetcher } from "@remix-run/react"
-import { json, type ActionArgs } from "@vercel/remix"
+import { type ActionArgs, json } from "@vercel/remix"
 import { useEffect, useState } from "react"
 import { $params, $path } from "remix-routes"
 import { type Video } from "scraper-edge"
@@ -91,11 +91,9 @@ export function AddSongForm({ roomId }: { roomId: string }) {
             }}
           />
           <div
-            data-visible={
-              searchFetcher.state === "loading" ||
-              trackSubmitFetcher.pending ||
-              undefined
-            }
+            data-visible={searchFetcher.state === "loading"
+              || trackSubmitFetcher.pending
+              || undefined}
             className="pointer-events-none absolute inset-y-0 right-0 flex items-center justify-center px-3 opacity-0 transition-opacity data-[visible]:opacity-100"
           >
             <Spinner />

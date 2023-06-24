@@ -1,11 +1,6 @@
 import { createContext, useContext, useEffect, useMemo, useState } from "react"
 import { vinylSocket } from "~/data/vinyl-socket"
-import {
-  type Queue,
-  type QueueItem,
-  type Room,
-  type User,
-} from "~/data/vinyl-types"
+import { type Queue, type QueueItem, type Room, type User } from "~/data/vinyl-types"
 import { showNotification } from "~/helpers/notifications"
 
 export function RoomStateProvider({
@@ -38,8 +33,7 @@ export function RoomStateProvider({
       onConnect: () => setConnected(true),
       onDisconnect: () => setConnected(false),
       onMessage: (message) => {
-        const matchesRoom =
-          message.room === room.id || message.room === `room:${room.id}`
+        const matchesRoom = message.room === room.id || message.room === `room:${room.id}`
         if (!matchesRoom) return
 
         if (message.type === "queue-update") {

@@ -1,6 +1,6 @@
 import { z } from "zod"
 import { getSessionToken } from "./vinyl-session"
-import { queueSchema, roomSchema, userSchema, type Room } from "./vinyl-types"
+import { queueSchema, type Room, roomSchema, userSchema } from "./vinyl-types"
 
 const apiUrl = new URL(
   "/v1/",
@@ -15,19 +15,19 @@ type Json = string | number | boolean | null | Json[] | { [key: string]: Json }
 
 type BaseFetchArgs<T> =
   | {
-      request: Request
-      method: "GET"
-      path: string
-      schema: z.Schema<T>
-      body?: never
-    }
+    request: Request
+    method: "GET"
+    path: string
+    schema: z.Schema<T>
+    body?: never
+  }
   | {
-      request: Request
-      method: "POST" | "PATCH" | "PUT" | "DELETE"
-      path: string
-      schema: z.Schema<T>
-      body: Json
-    }
+    request: Request
+    method: "POST" | "PATCH" | "PUT" | "DELETE"
+    path: string
+    schema: z.Schema<T>
+    body: Json
+  }
 
 export type VinylApiResult<T> =
   | { data: T; error?: null }
@@ -191,15 +191,13 @@ export function vinylApi(request: Request) {
         if (!response.ok) {
           const error = await response.text().catch(() => undefined)
           return {
-            error:
-              error || `API error: ${response.status} ${response.statusText}`,
+            error: error || `API error: ${response.status} ${response.statusText}`,
           }
         }
 
         return { data: null }
       } catch (error) {
-        const errorMessage =
-          error instanceof Error ? error.message : String(error)
+        const errorMessage = error instanceof Error ? error.message : String(error)
         return { error: `Failed to submit song (${errorMessage})` }
       }
     },

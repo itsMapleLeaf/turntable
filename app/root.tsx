@@ -1,11 +1,4 @@
-import {
-  Links,
-  LiveReload,
-  Meta,
-  Outlet,
-  Scripts,
-  useLoaderData,
-} from "@remix-run/react"
+import { Links, LiveReload, Meta, Outlet, Scripts, useLoaderData } from "@remix-run/react"
 import type { LinksFunction, LoaderArgs, V2_MetaFunction } from "@vercel/remix"
 import background from "./assets/background.jpg"
 import favicon from "./assets/favicon.png"
@@ -47,11 +40,13 @@ export default function Root() {
           rel="preconnect"
           href="https://fonts.gstatic.com"
           crossOrigin="anonymous"
-        ></link>
+        >
+        </link>
         <link
           href="https://fonts.googleapis.com/css2?family=Pathway+Extreme:wght@300;400;500&display=swap"
           rel="stylesheet"
-        ></link>
+        >
+        </link>
       </head>
       <body
         className="bg-cover bg-fixed bg-center"
