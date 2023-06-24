@@ -1,5 +1,5 @@
 import { Links, LiveReload, Meta, Outlet, Scripts, useLoaderData } from "@remix-run/react"
-import type { LinksFunction, LoaderArgs, V2_MetaFunction } from "@vercel/remix"
+import { defer, type LinksFunction, type LoaderArgs, type V2_MetaFunction } from "@vercel/remix"
 import background from "./assets/background.jpg"
 import favicon from "./assets/favicon.png"
 import { Header } from "./components/header"
@@ -15,10 +15,9 @@ export const links: LinksFunction = () => [
   { rel: "icon", href: favicon },
 ]
 
-export async function loader({ request }: LoaderArgs) {
+export function loader({ request }: LoaderArgs) {
   const api = vinylApi(request)
-  const user = await api.getUser()
-  return user.data ? { user: user.data } : { user: null }
+  return defer({ user: api.getUser() })
 }
 
 export default function Root() {
