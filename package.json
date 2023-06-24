@@ -19,6 +19,7 @@
     "format:dprint": "dprint fmt"
   },
   "dependencies": {
+    "@jessestolwijk/reconnecting-event-source": "^0.1.0",
     "@radix-ui/react-popover": "^1.0.6",
     "@radix-ui/react-tooltip": "^1.0.6",
     "@remix-run/node": "^1.17.0",

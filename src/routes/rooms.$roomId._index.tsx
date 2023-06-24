@@ -16,7 +16,9 @@ export default function RoomQueuePage() {
       <div className="panel">
         <AddSongForm roomId={roomId} />
       </div>
-      {items.length > 0 ? <QueueItemList items={items} /> : <p>The queue is empty.</p>}
+      {items.length > 0
+        ? <QueueItemList items={items} />
+        : <p>The queue is empty.</p>}
     </section>
   )
 }

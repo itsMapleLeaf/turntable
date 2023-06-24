@@ -165,7 +165,7 @@ export function vinylApi(request: Request) {
     },
 
     getGatewayUrl(token: string) {
-      return new URL(`/v1/gateway?token=${token}`, socketUrl)
+      return new URL(`/v1/events?token=${token}`, apiUrl)
     },
 
     async submitSong(
