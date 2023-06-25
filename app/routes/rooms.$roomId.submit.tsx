@@ -50,8 +50,11 @@ export function AddSongForm({ roomId }: { roomId: string }) {
 
   const sourceMenu = (
     <DropdownMenu.Root>
-      <DropdownMenu.Trigger type="button" className="button p-2" title="Switch source...">
-        <submitSource.icon />
+      <DropdownMenu.Trigger asChild>
+        <Button
+          element={<button type="button" title="Switch source..." />}
+          iconElement={<submitSource.icon />}
+        />
       </DropdownMenu.Trigger>
       <DropdownMenu.Portal>
         <DropdownMenu.Content
