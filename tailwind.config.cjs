@@ -20,6 +20,12 @@ module.exports = {
       borderColor: {
         current: "currentColor",
       },
+      minWidth: (utils) => ({
+        ...utils.theme("width"),
+      }),
+      maxWidth: (utils) => ({
+        ...utils.theme("width"),
+      }),
     },
   },
   plugins: [],
