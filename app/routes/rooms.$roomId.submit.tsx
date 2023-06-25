@@ -1,6 +1,8 @@
+import * as DropdownMenu from "@radix-ui/react-dropdown-menu"
 import { useFetcher } from "@remix-run/react"
 import { type ActionArgs, json } from "@vercel/remix"
-import { useEffect, useState } from "react"
+import { LucideLink, LucidePlay, LucideYoutube } from "lucide-react"
+import { type ReactNode, useEffect, useState } from "react"
 import { $params, $path } from "remix-routes"
 import { type Video } from "scraper-edge"
 import { zfd } from "zod-form-data"
@@ -36,11 +38,60 @@ function useTrackSubmitFetcher({ roomId }: { roomId: string }) {
   return { data, pending, submit }
 }
 
+const submitSources = [
+  { name: "YouTube", icon: LucideYoutube },
+  { name: "Direct URL", icon: LucideLink },
+] as const
+type SubmitSource = typeof submitSources[number]
+
 export function AddSongForm({ roomId }: { roomId: string }) {
+  const [submitSource, setSubmitSource] = useState<SubmitSource>(submitSources[0])
+
+  const sourceMenu = <SourceMenu
+    sources={submitSources}
+    currentSource={submitSource}
+    onChange={setSubmitSource}
+  />
+
+  return submitSource.name === "YouTube"
+    ? <YouTubeSearchSubmitter roomId={roomId} sourceMenu={sourceMenu} />
+    : <DirectUrlSubmitter roomId={roomId} sourceMenu={sourceMenu} />
+}
+
+function DirectUrlSubmitter({ roomId, sourceMenu }: { roomId: string; sourceMenu: ReactNode }) {
+  const trackSubmitFetcher = useTrackSubmitFetcher({ roomId })
+  return <form
+    className="flex flex-row gap-2 p-3"
+    onSubmit={event => {
+      event.preventDefault()
+      const form = new FormData(event.currentTarget)
+      trackSubmitFetcher.submit(form.get("url") as string)
+    }}
+  >
+    <input
+      name="url"
+      placeholder="Enter a YouTube or WaveDistrict URL"
+      className="input flex-1"
+    />
+    <button
+      type="submit"
+      className="button p-2 sm:px-3"
+      disabled={trackSubmitFetcher.pending}
+    >
+      {trackSubmitFetcher.pending ? <Spinner size={5} /> : <LucidePlay className="w-5 h-5" />}{" "}
+      <span className="sr-only sm:not-sr-only">Submit</span>
+    </button>
+    {sourceMenu}
+  </form>
+}
+
+function YouTubeSearchSubmitter({ roomId, sourceMenu }: {
+  roomId: string
+  sourceMenu: ReactNode
+}) {
   const searchFetcher = useSearchFetcher()
   const searchItems = searchFetcher.data?.data ?? []
   const [searchInputEmpty, setSearchInputEmpty] = useState(true)
-
   const trackSubmitFetcher = useTrackSubmitFetcher({ roomId })
 
   return (
@@ -69,12 +120,12 @@ export function AddSongForm({ roomId }: { roomId: string }) {
         }
       }}
     >
-      <div className="grid gap-3 p-3">
-        <div className="relative">
+      <div className="flex flex-row gap-2 p-3">
+        <div className="relative flex-1">
           <input
             name="url"
             placeholder="Search YouTube"
-            className="input h-full"
+            className="h-full input"
             required
             data-focus-target
             onChange={(event) => {
@@ -99,27 +150,17 @@ export function AddSongForm({ roomId }: { roomId: string }) {
             <Spinner />
           </div>
         </div>
-        <p>
-          Or{" "}
-          <button
-            type="button"
-            className="text-accent-200 underline underline-offset-[3px] hover:no-underline"
-            onClick={() => {
-              const url = prompt("Enter a YouTube or WaveDistrict URL")
-              if (url) trackSubmitFetcher.submit(url)
-            }}
-          >
-            submit a URL directly
-          </button>
-        </p>
+        {sourceMenu}
       </div>
+
       {searchItems.length > 0 && (
-        <div className="max-h-80 overflow-y-scroll">
+        <div className="overflow-y-scroll max-h-80">
           {searchItems.map((video) => (
             <SearchResultItem key={video.id} roomId={roomId} video={video} />
           ))}
         </div>
       )}
+
       {searchFetcher.data?.data?.length === 0 && !searchInputEmpty && (
         <p className="p-3 opacity-75">No results found.</p>
       )}
@@ -131,7 +172,6 @@ function SearchResultItem({ roomId, video }: { roomId: string; video: Video }) {
   const fetcher = useTrackSubmitFetcher({ roomId })
   return (
     <>
-      <input type="hidden" name="url" value={video.link} />
       <button
         type="button"
         className="button flex w-full items-center gap-3 rounded-none border-none bg-transparent text-left ring-inset data-[pending]:opacity-75"
@@ -143,7 +183,7 @@ function SearchResultItem({ roomId, video }: { roomId: string; video: Video }) {
         <img
           src={video.thumbnail}
           alt=""
-          className="aspect-square w-12 rounded border border-white/10 object-cover"
+          className="object-cover w-12 border rounded aspect-square border-white/10"
         />
         <div className="flex-1 leading-none">
           <div className="text-sm opacity-75">
@@ -159,5 +199,36 @@ function SearchResultItem({ roomId, video }: { roomId: string; video: Video }) {
         </div>
       </button>
     </>
+  )
+}
+
+function SourceMenu(props: {
+  sources: readonly SubmitSource[]
+  currentSource: SubmitSource
+  onChange: (source: SubmitSource) => void
+}) {
+  return (
+    <DropdownMenu.Root>
+      <DropdownMenu.Trigger type="button" className="button p-2" title="Switch source...">
+        <props.currentSource.icon />
+      </DropdownMenu.Trigger>
+      <DropdownMenu.Portal>
+        <DropdownMenu.Content
+          className="border rounded-md panel overflow-clip min-w-40"
+          align="end"
+          sideOffset={8}
+        >
+          {props.sources.map((source) => (
+            <DropdownMenu.Item
+              key={source.name}
+              className="flex items-center gap-2 py-2 px-3 data-[highlighted]:bg-white/25 transition-colors cursor-pointer"
+              onClick={() => props.onChange(source)}
+            >
+              <source.icon className="w-4 h-4" /> {source.name}
+            </DropdownMenu.Item>
+          ))}
+        </DropdownMenu.Content>
+      </DropdownMenu.Portal>
+    </DropdownMenu.Root>
   )
 }
