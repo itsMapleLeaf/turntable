@@ -47,11 +47,28 @@ type SubmitSource = typeof submitSources[number]
 export function AddSongForm({ roomId }: { roomId: string }) {
   const [submitSource, setSubmitSource] = useState<SubmitSource>(submitSources[0])
 
-  const sourceMenu = <SourceMenu
-    sources={submitSources}
-    currentSource={submitSource}
-    onChange={setSubmitSource}
-  />
+  const sourceMenu = <DropdownMenu.Root>
+    <DropdownMenu.Trigger type="button" className="button p-2" title="Switch source...">
+      <submitSource.icon />
+    </DropdownMenu.Trigger>
+    <DropdownMenu.Portal>
+      <DropdownMenu.Content
+        className="border rounded-md panel overflow-clip min-w-40"
+        align="end"
+        sideOffset={8}
+      >
+        {submitSources.map((source) => (
+          <DropdownMenu.Item
+            key={source.name}
+            className="flex items-center gap-2 py-2 px-3 data-[highlighted]:bg-white/25 transition-colors cursor-pointer"
+            onClick={() => setSubmitSource(source)}
+          >
+            <source.icon className="w-4 h-4" /> {source.name}
+          </DropdownMenu.Item>
+        ))}
+      </DropdownMenu.Content>
+    </DropdownMenu.Portal>
+  </DropdownMenu.Root>
 
   return submitSource.name === "YouTube"
     ? <YouTubeSearchSubmitter roomId={roomId} sourceMenu={sourceMenu} />
@@ -199,36 +216,5 @@ function SearchResultItem({ roomId, video }: { roomId: string; video: Video }) {
         </div>
       </button>
     </>
-  )
-}
-
-function SourceMenu(props: {
-  sources: readonly SubmitSource[]
-  currentSource: SubmitSource
-  onChange: (source: SubmitSource) => void
-}) {
-  return (
-    <DropdownMenu.Root>
-      <DropdownMenu.Trigger type="button" className="button p-2" title="Switch source...">
-        <props.currentSource.icon />
-      </DropdownMenu.Trigger>
-      <DropdownMenu.Portal>
-        <DropdownMenu.Content
-          className="border rounded-md panel overflow-clip min-w-40"
-          align="end"
-          sideOffset={8}
-        >
-          {props.sources.map((source) => (
-            <DropdownMenu.Item
-              key={source.name}
-              className="flex items-center gap-2 py-2 px-3 data-[highlighted]:bg-white/25 transition-colors cursor-pointer"
-              onClick={() => props.onChange(source)}
-            >
-              <source.icon className="w-4 h-4" /> {source.name}
-            </DropdownMenu.Item>
-          ))}
-        </DropdownMenu.Content>
-      </DropdownMenu.Portal>
-    </DropdownMenu.Root>
   )
 }
