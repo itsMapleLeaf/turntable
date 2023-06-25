@@ -2,7 +2,6 @@
   "typescript": {
     "semiColons": "asi",
     "lineWidth": 100,
-    "jsxAttributes.preferHanging": true,
     "jsx.multiLineParens": "never"
   },
   "json": {
