@@ -42,7 +42,8 @@ export function RoomStateProvider({
           setQueue((queue) => ({
             ...queue,
             items: message.items,
-            submitters: message.submitters || queue.submitters, // remove this fallback when submitters is added
+            submitters: message.submitters,
+            currentItem: message.currentItem,
           }))
         }
 
