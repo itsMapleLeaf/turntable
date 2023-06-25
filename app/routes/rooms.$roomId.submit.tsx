@@ -6,6 +6,7 @@ import { type ReactNode, useEffect, useState } from "react"
 import { $params, $path } from "remix-routes"
 import { type Video } from "scraper-edge"
 import { zfd } from "zod-form-data"
+import { Button } from "~/components/button"
 import { Spinner } from "~/components/spinner"
 import { vinylApi } from "~/data/vinyl-api.server"
 import { mod } from "~/helpers/math"
@@ -90,18 +91,17 @@ function DirectUrlSubmitter({ roomId, sourceMenu }: { roomId: string; sourceMenu
     >
       <input
         name="url"
+        required
         placeholder="Enter a YouTube or WaveDistrict URL"
         className="input flex-1"
       />
-      <button
-        type="submit"
-        className="button p-2 sm:px-3"
-        disabled={trackSubmitFetcher.pending}
-      >
-        {trackSubmitFetcher.pending ? <Spinner size={5} /> : <LucidePlay className="w-5 h-5" />}
-        {" "}
-        <span className="sr-only sm:not-sr-only">Submit</span>
-      </button>
+      <Button
+        element={<button type="submit" />}
+        label={<span className="sr-only sm:not-sr-only">Submit</span>}
+        pendingLabel={<span className="sr-only sm:not-sr-only">Submitting...</span>}
+        pending={trackSubmitFetcher.pending}
+        iconElement={<LucidePlay />}
+      />
       {sourceMenu}
     </form>
   )
