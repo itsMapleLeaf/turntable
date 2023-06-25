@@ -16,9 +16,7 @@ export function Button({
 }) {
   return (
     <Slot element={element} className="button" disabled={pending}>
-      {iconElement && (
-        <Slot element={iconElement} className="h-5 w-5" aria-hidden />
-      )}
+      {iconElement && <Slot element={iconElement} className="h-5 w-5" aria-hidden />}
       {pending ? pendingLabel : label}
     </Slot>
   )

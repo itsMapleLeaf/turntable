@@ -32,9 +32,7 @@ export function NowPlaying() {
             )}
           </>
         )
-        : (
-          <p className="opacity-75">Nothing playing</p>
-        )}
+        : <p className="opacity-75">Nothing playing</p>}
     </div>
   )
 }

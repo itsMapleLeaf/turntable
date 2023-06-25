@@ -47,28 +47,30 @@ type SubmitSource = typeof submitSources[number]
 export function AddSongForm({ roomId }: { roomId: string }) {
   const [submitSource, setSubmitSource] = useState<SubmitSource>(submitSources[0])
 
-  const sourceMenu = <DropdownMenu.Root>
-    <DropdownMenu.Trigger type="button" className="button p-2" title="Switch source...">
-      <submitSource.icon />
-    </DropdownMenu.Trigger>
-    <DropdownMenu.Portal>
-      <DropdownMenu.Content
-        className="border rounded-md panel overflow-clip min-w-40"
-        align="end"
-        sideOffset={8}
-      >
-        {submitSources.map((source) => (
-          <DropdownMenu.Item
-            key={source.name}
-            className="flex items-center gap-2 py-2 px-3 data-[highlighted]:bg-white/25 transition-colors cursor-pointer"
-            onClick={() => setSubmitSource(source)}
-          >
-            <source.icon className="w-4 h-4" /> {source.name}
-          </DropdownMenu.Item>
-        ))}
-      </DropdownMenu.Content>
-    </DropdownMenu.Portal>
-  </DropdownMenu.Root>
+  const sourceMenu = (
+    <DropdownMenu.Root>
+      <DropdownMenu.Trigger type="button" className="button p-2" title="Switch source...">
+        <submitSource.icon />
+      </DropdownMenu.Trigger>
+      <DropdownMenu.Portal>
+        <DropdownMenu.Content
+          className="border rounded-md panel overflow-clip min-w-40"
+          align="end"
+          sideOffset={8}
+        >
+          {submitSources.map((source) => (
+            <DropdownMenu.Item
+              key={source.name}
+              className="flex items-center gap-2 py-2 px-3 data-[highlighted]:bg-white/25 transition-colors cursor-pointer"
+              onClick={() => setSubmitSource(source)}
+            >
+              <source.icon className="w-4 h-4" /> {source.name}
+            </DropdownMenu.Item>
+          ))}
+        </DropdownMenu.Content>
+      </DropdownMenu.Portal>
+    </DropdownMenu.Root>
+  )
 
   return submitSource.name === "YouTube"
     ? <YouTubeSearchSubmitter roomId={roomId} sourceMenu={sourceMenu} />
@@ -77,29 +79,32 @@ export function AddSongForm({ roomId }: { roomId: string }) {
 
 function DirectUrlSubmitter({ roomId, sourceMenu }: { roomId: string; sourceMenu: ReactNode }) {
   const trackSubmitFetcher = useTrackSubmitFetcher({ roomId })
-  return <form
-    className="flex flex-row gap-2 p-3"
-    onSubmit={event => {
-      event.preventDefault()
-      const form = new FormData(event.currentTarget)
-      trackSubmitFetcher.submit(form.get("url") as string)
-    }}
-  >
-    <input
-      name="url"
-      placeholder="Enter a YouTube or WaveDistrict URL"
-      className="input flex-1"
-    />
-    <button
-      type="submit"
-      className="button p-2 sm:px-3"
-      disabled={trackSubmitFetcher.pending}
+  return (
+    <form
+      className="flex flex-row gap-2 p-3"
+      onSubmit={event => {
+        event.preventDefault()
+        const form = new FormData(event.currentTarget)
+        trackSubmitFetcher.submit(form.get("url") as string)
+      }}
     >
-      {trackSubmitFetcher.pending ? <Spinner size={5} /> : <LucidePlay className="w-5 h-5" />}{" "}
-      <span className="sr-only sm:not-sr-only">Submit</span>
-    </button>
-    {sourceMenu}
-  </form>
+      <input
+        name="url"
+        placeholder="Enter a YouTube or WaveDistrict URL"
+        className="input flex-1"
+      />
+      <button
+        type="submit"
+        className="button p-2 sm:px-3"
+        disabled={trackSubmitFetcher.pending}
+      >
+        {trackSubmitFetcher.pending ? <Spinner size={5} /> : <LucidePlay className="w-5 h-5" />}
+        {" "}
+        <span className="sr-only sm:not-sr-only">Submit</span>
+      </button>
+      {sourceMenu}
+    </form>
+  )
 }
 
 function YouTubeSearchSubmitter({ roomId, sourceMenu }: {

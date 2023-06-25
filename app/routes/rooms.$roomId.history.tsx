@@ -11,9 +11,7 @@ export default function RoomHistoryPage() {
     <section className="grid gap-4">
       <h2 className="sr-only">History</h2>
       {historyItems.length > 0
-        ? (
-          <QueueItemList items={historyItems} />
-        )
+        ? <QueueItemList items={historyItems} />
         : (
           <p className="panel border p-3">
             <span className="opacity-75">This room has no history.</span>

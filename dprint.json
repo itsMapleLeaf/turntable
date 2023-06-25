@@ -1,8 +1,7 @@
 {
   "typescript": {
     "semiColons": "asi",
-    "lineWidth": 100,
-    "jsx.multiLineParens": "never"
+    "lineWidth": 100
   },
   "json": {
   },
