@@ -1,41 +1,21 @@
-import * as Popover from "@radix-ui/react-popover"
-import { Link } from "@remix-run/react"
-import { LogOut, Menu } from "lucide-react"
+import { LucideLogOut, LucideMenu } from "lucide-react"
+import { Menu, MenuButton, MenuItemLink, MenuPanel } from "./menu"
 
 export function HeaderMenu() {
   return (
-    <Popover.Root>
-      <Popover.Trigger className="link p-1">
-        <Menu aria-hidden className="h-6 w-6" />
+    <Menu>
+      <MenuButton>
+        <LucideMenu aria-hidden className="h-6 w-6" />
         <span className="sr-only">Menu</span>
-      </Popover.Trigger>
-      <Popover.Portal>
-        <Popover.Content
-          className="panel radix-fade-zoom-transition flex flex-col border duration-100"
-          align="end"
-          sideOffset={8}
-        >
-          {/* playing things in multiple rooms kills vinyl */}
-          {
-            /* <Popover.Close asChild>
-            <Link
-              to="/rooms/new"
-              className="link flex flex-row items-center gap-2 px-3 py-2"
-            >
-              <ListPlus aria-hidden className="h-5 w-5" /> New Room
-            </Link>
-          </Popover.Close> */
-          }
-          <Popover.Close asChild>
-            <Link
-              to="/sign-out"
-              className="link flex flex-row items-center gap-2 px-3 py-2"
-            >
-              <LogOut aria-hidden className="h-5 w-5" /> Sign Out
-            </Link>
-          </Popover.Close>
-        </Popover.Content>
-      </Popover.Portal>
-    </Popover.Root>
+      </MenuButton>
+      <MenuPanel>
+        <MenuItemLink
+          to="/sign-out"
+          className="link flex flex-row items-center gap-2 px-3 py-2"
+          label="Sign Out"
+          icon={LucideLogOut}
+        />
+      </MenuPanel>
+    </Menu>
   )
 }

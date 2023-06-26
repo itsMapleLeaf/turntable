@@ -1,4 +1,3 @@
-import * as DropdownMenu from "@radix-ui/react-dropdown-menu"
 import { type ActionArgs, json } from "@remix-run/node"
 import { useFetcher } from "@remix-run/react"
 import { LucideLink, LucidePlay, LucideYoutube } from "lucide-react"
@@ -7,6 +6,7 @@ import { $params, $path } from "remix-routes"
 import { type Video } from "scraper-edge"
 import { zfd } from "zod-form-data"
 import { Button } from "~/components/button"
+import { Menu, MenuButton, MenuItemButton, MenuPanel } from "~/components/menu"
 import { Spinner } from "~/components/spinner"
 import { vinylApi } from "~/data/vinyl-api.server"
 import { toError } from "~/helpers/errors"
@@ -49,31 +49,24 @@ export function AddSongForm({ roomId }: { roomId: string }) {
   const [submitSource, setSubmitSource] = useState<SubmitSource>(submitSources[0])
 
   const sourceMenu = (
-    <DropdownMenu.Root>
-      <DropdownMenu.Trigger asChild>
+    <Menu>
+      <MenuButton asChild>
         <Button
           element={<button type="button" title="Switch source..." />}
           iconElement={<submitSource.icon />}
         />
-      </DropdownMenu.Trigger>
-      <DropdownMenu.Portal>
-        <DropdownMenu.Content
-          className="border rounded-md panel overflow-clip min-w-40"
-          align="end"
-          sideOffset={8}
-        >
-          {submitSources.map((source) => (
-            <DropdownMenu.Item
-              key={source.name}
-              className="flex items-center gap-2 py-2 px-3 data-[highlighted]:bg-white/25 transition-colors cursor-pointer"
-              onClick={() => setSubmitSource(source)}
-            >
-              <source.icon className="w-4 h-4" /> {source.name}
-            </DropdownMenu.Item>
-          ))}
-        </DropdownMenu.Content>
-      </DropdownMenu.Portal>
-    </DropdownMenu.Root>
+      </MenuButton>
+      <MenuPanel>
+        {submitSources.map((source) => (
+          <MenuItemButton
+            key={source.name}
+            label={source.name}
+            icon={source.icon}
+            onClick={() => setSubmitSource(source)}
+          />
+        ))}
+      </MenuPanel>
+    </Menu>
   )
 
   return submitSource.name === "YouTube"
