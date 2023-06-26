@@ -1,4 +1,10 @@
-import { Await, NavLink, Outlet, useLoaderData } from "@remix-run/react"
+import {
+  Await,
+  NavLink,
+  Outlet,
+  type ShouldRevalidateFunction,
+  useLoaderData,
+} from "@remix-run/react"
 import { defer, type LoaderArgs } from "@vercel/remix"
 import { $path } from "remix-routes"
 import { Player } from "~/components/player"
@@ -37,6 +43,8 @@ export function loader({ request, params }: LoaderArgs) {
     data: loadData(),
   })
 }
+
+export const shouldRevalidate: ShouldRevalidateFunction = () => false
 
 export default function RoomPage() {
   const { data } = useLoaderData<typeof loader>()
