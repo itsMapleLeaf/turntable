@@ -1,5 +1,5 @@
+import { json, type LoaderArgs, type TypedResponse } from "@remix-run/node"
 import { useFetcher } from "@remix-run/react"
-import { json, type LoaderArgs, type TypedResponse } from "@vercel/remix"
 import { searchYouTube, type Video, type YouTubeResult } from "~/data/youtube.server"
 
 export async function loader({

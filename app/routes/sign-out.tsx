@@ -1,4 +1,4 @@
-import { type LoaderArgs, redirect } from "@vercel/remix"
+import { type LoaderArgs, redirect } from "@remix-run/node"
 import { destroySession } from "~/data/vinyl-session"
 
 export async function loader({ request }: LoaderArgs) {

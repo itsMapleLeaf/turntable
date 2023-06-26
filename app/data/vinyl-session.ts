@@ -1,4 +1,4 @@
-import { createCookie } from "@vercel/remix"
+import { createCookie } from "@remix-run/node"
 
 const vinylTokenCookie = createCookie("vinyl-token", {
   httpOnly: true,

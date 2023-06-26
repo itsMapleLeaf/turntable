@@ -1,8 +1,8 @@
+import { defer, type LoaderArgs } from "@remix-run/node"
 import { Await, Link, useLoaderData } from "@remix-run/react"
-import { defer, type LoaderArgs } from "@vercel/remix"
 import { Disc } from "lucide-react"
 import { Button } from "~/components/button"
-import { vinylApi, type VinylApiResult } from "~/data/vinyl-api.server"
+import { vinylApi } from "~/data/vinyl-api.server"
 import { type Room } from "~/data/vinyl-types"
 
 export function loader({ request }: LoaderArgs) {
@@ -21,12 +21,8 @@ export default function RoomListPage() {
   )
 }
 
-function RoomListPageContent({ rooms }: { rooms: VinylApiResult<Room[]> }) {
-  if ("error" in rooms) {
-    return <p className="text-center">{rooms.error}</p>
-  }
-
-  if (rooms.data.length === 0) {
+function RoomListPageContent({ rooms }: { rooms: Room[] }) {
+  if (rooms.length === 0) {
     return (
       <div className="flex flex-col items-center gap-4 py-16 text-center">
         <p className="text-2xl font-light">No rooms found.</p>
@@ -37,7 +33,7 @@ function RoomListPageContent({ rooms }: { rooms: VinylApiResult<Room[]> }) {
 
   return (
     <ul className="grid grid-cols-[repeat(auto-fill,minmax(12rem,1fr))] gap-4">
-      {rooms.data.map((room) => (
+      {rooms.map((room) => (
         <li key={room.id}>
           <Link
             to={`/rooms/${room.id}`}

@@ -1,18 +1,12 @@
-import {
-  Await,
-  NavLink,
-  Outlet,
-  type ShouldRevalidateFunction,
-  useLoaderData,
-} from "@remix-run/react"
-import { defer, type LoaderArgs } from "@vercel/remix"
+import { defer, type LoaderArgs } from "@remix-run/node"
+import { Await, NavLink, Outlet, useLoaderData } from "@remix-run/react"
 import { $path } from "remix-routes"
 import { Player } from "~/components/player"
 import { Spinner } from "~/components/spinner"
 import { vinylApi } from "~/data/vinyl-api.server"
 import { getSessionToken } from "~/data/vinyl-session"
 import { type Room } from "~/data/vinyl-types"
-import { raise } from "~/helpers/raise"
+import { raise } from "~/helpers/errors"
 import { NowPlaying } from "../components/now-playing"
 import { ProgressBar } from "../components/progress-bar"
 import { RoomMembers } from "../components/room-members"
@@ -44,32 +38,18 @@ export function loader({ request, params }: LoaderArgs) {
   })
 }
 
-export const shouldRevalidate: ShouldRevalidateFunction = () => false
-
 export default function RoomPage() {
   const { data } = useLoaderData<typeof loader>()
   return (
     <Await resolve={data}>
-      {data => {
-        if (!data) {
-          return <p>Not logged in</p>
-        }
-        if ("error" in data.room) {
-          return <p>Failed to load room: {data.room.error}</p>
-        }
-        if ("error" in data.queue) {
-          return <p>Failed to load queue: {data.queue.error}</p>
-        }
-        return (
-          <RoomStateProvider
-            room={data.room.data}
-            queue={data.queue.data}
-            socketUrl={data.socketUrl}
-          >
-            <RoomPageContent room={data.room.data} streamUrl={data.streamUrl} />
-          </RoomStateProvider>
-        )
-      }}
+      {data =>
+        data
+          ? (
+            <RoomStateProvider room={data.room} queue={data.queue} socketUrl={data.socketUrl}>
+              <RoomPageContent room={data.room} streamUrl={data.streamUrl} />
+            </RoomStateProvider>
+          )
+          : <p>Not logged in</p>}
     </Await>
   )
 }

@@ -1,4 +1,13 @@
 import {
+  type ActionArgs,
+  defer,
+  json,
+  type LinksFunction,
+  type LoaderArgs,
+  redirect,
+  type V2_MetaFunction,
+} from "@remix-run/node"
+import {
   Await,
   Links,
   LiveReload,
@@ -10,15 +19,6 @@ import {
   useLoaderData,
   useSearchParams,
 } from "@remix-run/react"
-import {
-  type ActionArgs,
-  defer,
-  json,
-  type LinksFunction,
-  type LoaderArgs,
-  redirect,
-  type V2_MetaFunction,
-} from "@vercel/remix"
 import { LogIn, UserPlus } from "lucide-react"
 import { Suspense } from "react"
 import { z } from "zod"
@@ -30,12 +30,11 @@ import { Button } from "./components/button"
 import { FormLayout } from "./components/form-layout"
 import { Header } from "./components/header"
 import { Spinner } from "./components/spinner"
-import { vinylApi } from "./data/vinyl-api.server"
+import { vinylApi, VinylApiError } from "./data/vinyl-api.server"
 import { createSession } from "./data/vinyl-session"
+import { raise, toError } from "./helpers/errors"
 import { usePendingSubmit } from "./helpers/use-pending-submit"
 import style from "./style.css"
-
-export const config = { runtime: "edge" }
 
 export const meta: V2_MetaFunction = () => [{ title: "Turntable" }]
 
@@ -46,7 +45,15 @@ export const links: LinksFunction = () => [
 
 export function loader({ request }: LoaderArgs) {
   const api = vinylApi(request)
-  return defer({ user: api.getUser() })
+  return defer({
+    user: api.getUser().catch((error) => {
+      const isUnauthorized = error instanceof VinylApiError && error.status === 401
+      if (!isUnauthorized) {
+        console.error("Failed to get user:", error)
+      }
+      return null
+    }),
+  })
 }
 
 export async function action({ request }: ActionArgs) {
@@ -64,37 +71,37 @@ export async function action({ request }: ActionArgs) {
     }),
   ])
 
-  const form = schema.parse(await request.formData())
+  try {
+    const form = await schema.parseAsync(await request.formData())
+      .catch(() => raise("Invalid form data"))
 
-  if (form.action === "login") {
-    const api = vinylApi(request)
-    const result = await api.login(form)
-    if (!result.data) {
-      return json({ error: result.error }, { status: 400 })
+    if (form.action === "login") {
+      const api = vinylApi(request)
+      const result = await api.login(form)
+      return redirect(request.headers.get("referer") ?? "/", {
+        headers: { "Set-Cookie": await createSession(result.token) },
+      })
     }
 
-    return redirect(request.headers.get("referer") ?? "/", {
-      headers: { "Set-Cookie": await createSession(result.data.token) },
-    })
+    if (form.action === "register") {
+      if (form.password !== form.passwordRepeat) {
+        return json({ error: "Passwords do not match" }, 400)
+      }
+
+      const api = vinylApi(request)
+      const result = await api.register(form)
+      return redirect(request.headers.get("referer") ?? "/", {
+        headers: { "Set-Cookie": await createSession(result.token) },
+      })
+    }
+
+    throw new Error("Invalid action")
+  } catch (error) {
+    if (error instanceof VinylApiError) {
+      return json({ error: error.message }, error.status)
+    }
+    return json({ error: toError(error).message }, 500)
   }
-
-  if (form.action === "register") {
-    if (form.password !== form.passwordRepeat) {
-      return json({ error: "Passwords do not match" }, { status: 400 })
-    }
-
-    const api = vinylApi(request)
-    const result = await api.register(form)
-    if (!result.data) {
-      return json({ error: result.error }, { status: 400 })
-    }
-
-    return redirect(request.headers.get("referer") ?? "/", {
-      headers: { "Set-Cookie": await createSession(result.data.token) },
-    })
-  }
-
-  throw new Error("Invalid action")
 }
 
 export default function Root() {
@@ -132,7 +139,7 @@ export default function Root() {
           <Header user={user} />
           <Suspense fallback="Loading...">
             <Await resolve={user}>
-              {user => user.data ? <Outlet /> : <AuthForms />}
+              {user => user ? <Outlet /> : <AuthForms />}
             </Await>
           </Suspense>
         </div>

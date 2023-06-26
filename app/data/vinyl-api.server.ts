@@ -1,14 +1,11 @@
 import { z } from "zod"
+import { raise } from "~/helpers/errors"
 import { getSessionToken } from "./vinyl-session"
 import { queueSchema, type Room, roomSchema, userSchema } from "./vinyl-types"
 
 const apiUrl = new URL(
   "/v1/",
   process.env.VINYL_API_URL || "http://localhost:9050",
-)
-const socketUrl = new URL(
-  "/v1/",
-  process.env.VINYL_SOCKET_URL || "ws://localhost:9050",
 )
 
 type Json = string | number | boolean | null | Json[] | { [key: string]: Json }
@@ -29,51 +26,41 @@ type BaseFetchArgs<T> =
     body: Json
   }
 
-export type VinylApiResult<T> =
-  | { data: T; error?: null }
-  | { data?: null; error: string }
-
-export async function vinylFetch<T>({
+async function vinylFetch<T>({
   request,
   method,
   path,
   schema,
   body,
-}: BaseFetchArgs<T>): Promise<VinylApiResult<T>> {
+}: BaseFetchArgs<T>): Promise<T> {
   const url = new URL(path, apiUrl)
 
-  try {
-    const headers: Record<string, string> = {
-      "Content-Type": "application/json",
-    }
-
-    const token = await getSessionToken(request)
-    if (typeof token === "string") {
-      headers.Authorization = `Bearer ${token}`
-    }
-
-    const response = await fetch(url, {
-      method,
-      headers,
-      ...(body && { body: JSON.stringify(body) }),
-    })
-
-    if (!response.ok) {
-      const error = await response.text().catch(() => undefined)
-      return {
-        error: error || `API error: ${response.status} ${response.statusText}`,
-      }
-    }
-
-    const json = (await response.json()) as unknown
-
-    console.info("[vinyl]", method, url.pathname, json)
-
-    return { data: schema.parse(json) }
-  } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : String(error)
-    return { error: `${method} ${url.pathname} failed  (${errorMessage})` }
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
   }
+
+  const token = await getSessionToken(request)
+  if (typeof token === "string") {
+    headers.Authorization = `Bearer ${token}`
+  }
+
+  const response = await fetch(url, {
+    method,
+    headers,
+    ...(body && { body: JSON.stringify(body) }),
+  })
+
+  if (!response.ok) {
+    const error = await response.text().catch(() => undefined)
+    throw new VinylApiError(
+      error || `Failed to ${method} ${path} (${response.status} ${response.statusText})`,
+      response.status,
+    )
+  }
+
+  const json = await response.json()
+  console.info("[vinyl]", method, url.pathname, json)
+  return schema.parse(json)
 }
 
 const authResponseSchema = z.object({
@@ -102,7 +89,6 @@ export function vinylApi(request: Request) {
       })
     },
 
-    // todo: namespace these?
     getUser() {
       return vinylFetch({
         request,
@@ -131,24 +117,14 @@ export function vinylApi(request: Request) {
       })
     },
 
-    async getRoom(roomId: string): Promise<VinylApiResult<Room>> {
+    async getRoom(roomId: string): Promise<Room> {
       const rooms = await vinylFetch({
         request,
         method: "GET",
         path: "rooms",
         schema: z.array(roomSchema),
       })
-
-      if (!rooms.data) {
-        return rooms
-      }
-
-      const room = rooms.data.find((r) => r.id === roomId)
-      if (!room) {
-        return { error: "Room not found" }
-      }
-
-      return { data: room }
+      return rooms.find((r) => r.id === roomId) ?? raise(new VinylApiError("Room not found", 500))
     },
 
     async getRoomQueue(roomId: string) {
@@ -168,38 +144,35 @@ export function vinylApi(request: Request) {
       return new URL(`/v1/events?token=${token}`, apiUrl)
     },
 
-    async submitSong(
-      roomId: string,
-      url: string,
-    ): Promise<VinylApiResult<null>> {
-      try {
-        const headers: Record<string, string> = {
-          "Content-Type": "text/plain",
-        }
+    async submitSong(roomId: string, url: string) {
+      const headers: Record<string, string> = {
+        "Content-Type": "text/plain",
+      }
 
-        const token = await getSessionToken(request)
-        if (typeof token === "string") {
-          headers.Authorization = `Bearer ${token}`
-        }
+      const token = await getSessionToken(request)
+      if (typeof token === "string") {
+        headers.Authorization = `Bearer ${token}`
+      }
 
-        const response = await fetch(new URL(`rooms/${roomId}/queue`, apiUrl), {
-          method: "POST",
-          headers,
-          body: url,
-        })
+      const response = await fetch(new URL(`rooms/${roomId}/queue`, apiUrl), {
+        method: "POST",
+        headers,
+        body: url,
+      })
 
-        if (!response.ok) {
-          const error = await response.text().catch(() => undefined)
-          return {
-            error: error || `API error: ${response.status} ${response.statusText}`,
-          }
-        }
-
-        return { data: null }
-      } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : String(error)
-        return { error: `Failed to submit song (${errorMessage})` }
+      if (!response.ok) {
+        const error = await response.text().catch(() => undefined)
+        throw new VinylApiError(
+          error || `Failed to submit song (${response.status} ${response.statusText})`,
+          response.status,
+        )
       }
     },
+  }
+}
+
+export class VinylApiError extends Error {
+  constructor(message: string, readonly status: number) {
+    super(message)
   }
 }

@@ -1,6 +1,6 @@
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu"
+import { type ActionArgs, json } from "@remix-run/node"
 import { useFetcher } from "@remix-run/react"
-import { type ActionArgs, json } from "@vercel/remix"
 import { LucideLink, LucidePlay, LucideYoutube } from "lucide-react"
 import { type ReactNode, useEffect, useState } from "react"
 import { $params, $path } from "remix-routes"
@@ -9,24 +9,24 @@ import { zfd } from "zod-form-data"
 import { Button } from "~/components/button"
 import { Spinner } from "~/components/spinner"
 import { vinylApi } from "~/data/vinyl-api.server"
+import { toError } from "~/helpers/errors"
 import { mod } from "~/helpers/math"
 import { useSearchFetcher } from "~/routes/search"
 
 export async function action({ request, params }: ActionArgs) {
-  const { roomId } = $params("/rooms/:roomId/submit", params)
-  const body = zfd.formData({ url: zfd.text() }).parse(await request.formData())
-  const result = await vinylApi(request).submitSong(roomId, body.url)
-  return json({ error: result.error })
+  try {
+    const { roomId } = $params("/rooms/:roomId/submit", params)
+    const body = zfd.formData({ url: zfd.text() }).parse(await request.formData())
+    await vinylApi(request).submitSong(roomId, body.url)
+  } catch (error) {
+    return json({ error: toError(error).message }, 500)
+  }
+  return json({ error: null })
 }
 
 function useTrackSubmitFetcher({ roomId }: { roomId: string }) {
   const { data, state, submit: baseSubmit } = useFetcher<typeof action>()
   const pending = state === "submitting"
-
-  // cringe
-  useEffect(() => {
-    if (!pending && data?.error) alert(`Failed to submit song: ${data.error}`)
-  }, [data?.error, pending])
 
   const submit = (url: string) => {
     if (pending) return
@@ -85,7 +85,7 @@ function DirectUrlSubmitter({ roomId, sourceMenu }: { roomId: string; sourceMenu
   const trackSubmitFetcher = useTrackSubmitFetcher({ roomId })
   return (
     <form
-      className="flex flex-row gap-2 p-3"
+      className="grid grid-cols-[1fr,auto,auto] gap-2 p-3"
       onSubmit={event => {
         event.preventDefault()
         const form = new FormData(event.currentTarget)
@@ -94,7 +94,7 @@ function DirectUrlSubmitter({ roomId, sourceMenu }: { roomId: string; sourceMenu
     >
       <input
         name="url"
-        required
+        // required
         placeholder="Enter a YouTube or WaveDistrict URL"
         className="input flex-1"
       />
@@ -106,6 +106,9 @@ function DirectUrlSubmitter({ roomId, sourceMenu }: { roomId: string; sourceMenu
         iconElement={<LucidePlay />}
       />
       {sourceMenu}
+      {trackSubmitFetcher.data?.error && (
+        <p className="text-error-400 col-span-full">{trackSubmitFetcher.data?.error}</p>
+      )}
     </form>
   )
 }
@@ -117,7 +120,6 @@ function YouTubeSearchSubmitter({ roomId, sourceMenu }: {
   const searchFetcher = useSearchFetcher()
   const searchItems = searchFetcher.data?.data ?? []
   const [searchInputEmpty, setSearchInputEmpty] = useState(true)
-  const trackSubmitFetcher = useTrackSubmitFetcher({ roomId })
 
   return (
     // eslint-disable-next-line jsx-a11y/no-static-element-interactions
@@ -146,35 +148,25 @@ function YouTubeSearchSubmitter({ roomId, sourceMenu }: {
       }}
     >
       <div className="flex flex-row gap-2 p-3">
-        <div className="relative flex-1">
-          <input
-            name="url"
-            placeholder="Search YouTube"
-            className="h-full input"
-            required
-            data-focus-target
-            onChange={(event) => {
-              searchFetcher.load(event.target.value)
-              setSearchInputEmpty(event.target.value.trim() === "")
-            }}
-            onKeyDown={(event) => {
-              if (event.key === "Enter") {
-                event.preventDefault()
-                document
-                  .querySelector<HTMLElement>("[data-search-result-item]")
-                  ?.click()
-              }
-            }}
-          />
-          <div
-            data-visible={searchFetcher.state === "loading"
-              || trackSubmitFetcher.pending
-              || undefined}
-            className="pointer-events-none absolute inset-y-0 right-0 flex items-center justify-center px-3 opacity-0 transition-opacity data-[visible]:opacity-100"
-          >
-            <Spinner />
-          </div>
-        </div>
+        <input
+          name="url"
+          placeholder="Search YouTube"
+          className="input flex-1"
+          required
+          data-focus-target
+          onChange={(event) => {
+            searchFetcher.load(event.target.value)
+            setSearchInputEmpty(event.target.value.trim() === "")
+          }}
+          onKeyDown={(event) => {
+            if (event.key === "Enter") {
+              event.preventDefault()
+              document
+                .querySelector<HTMLElement>("[data-search-result-item]")
+                ?.click()
+            }
+          }}
+        />
         {sourceMenu}
       </div>
 
@@ -195,6 +187,12 @@ function YouTubeSearchSubmitter({ roomId, sourceMenu }: {
 
 function SearchResultItem({ roomId, video }: { roomId: string; video: Video }) {
   const fetcher = useTrackSubmitFetcher({ roomId })
+
+  // todo: make this a toast
+  useEffect(() => {
+    if (fetcher.data?.error) alert(`Failed to submit "${video.title}": ${fetcher.data.error}`)
+  }, [fetcher.data?.error, video.title])
+
   return (
     <>
       <button
