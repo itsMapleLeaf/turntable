@@ -94,7 +94,7 @@ function DirectUrlSubmitter({ roomId, sourceMenu }: { roomId: string; sourceMenu
     >
       <input
         name="url"
-        // required
+        required
         placeholder="Enter a YouTube or WaveDistrict URL"
         className="input flex-1"
       />
