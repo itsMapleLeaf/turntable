@@ -14,7 +14,7 @@ export default function RoomListPage() {
   const { rooms } = useLoaderData<typeof loader>()
   return (
     <main className="container flex-1 flex-col p-4">
-      <Await resolve={rooms}>
+      <Await resolve={rooms} errorElement={<p>Failed to fetch rooms</p>}>
         {rooms => <RoomListPageContent rooms={rooms} />}
       </Await>
     </main>

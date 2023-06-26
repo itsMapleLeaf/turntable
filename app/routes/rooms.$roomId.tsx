@@ -41,7 +41,7 @@ export function loader({ request, params }: LoaderArgs) {
 export default function RoomPage() {
   const { data } = useLoaderData<typeof loader>()
   return (
-    <Await resolve={data}>
+    <Await resolve={data} errorElement={<p>Failed to load room data</p>}>
       {data =>
         data
           ? (
