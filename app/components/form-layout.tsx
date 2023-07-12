@@ -7,11 +7,7 @@ export type FormLayoutProps = {
   error: Nullish<string>
 }
 
-export function FormLayout({
-  title,
-  children,
-  error,
-}: FormLayoutProps) {
+export function FormLayout({ title, children, error }: FormLayoutProps) {
   return (
     <main className="container py-4">
       <Form

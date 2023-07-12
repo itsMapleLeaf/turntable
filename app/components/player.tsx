@@ -41,31 +41,29 @@ export function Player({ streamUrl }: { streamUrl: string }) {
     }
   }, [])
 
-  return playFailed
-    ? (
-      <button
-        type="button"
-        onClick={() => {
-          const audio = ensureAudioElement()
-          audio.src = `${streamUrl}&nocache=${Date.now()}`
-          void audio.play().then(() => setPlayFailed(false))
-        }}
-      >
-        <PlayCircle aria-hidden className="h-8 w-8" />
-        <span className="sr-only">Play</span>
-      </button>
-    )
-    : (
-      <input
-        type="range"
-        className="w-48 max-w-full"
-        min={0}
-        max={1}
-        step={0.01}
-        value={volume}
-        onChange={(event) => setVolume(event.target.valueAsNumber)}
-      />
-    )
+  return playFailed ? (
+    <button
+      type="button"
+      onClick={() => {
+        const audio = ensureAudioElement()
+        audio.src = `${streamUrl}&nocache=${Date.now()}`
+        void audio.play().then(() => setPlayFailed(false))
+      }}
+    >
+      <PlayCircle aria-hidden className="h-8 w-8" />
+      <span className="sr-only">Play</span>
+    </button>
+  ) : (
+    <input
+      type="range"
+      className="w-48 max-w-full"
+      min={0}
+      max={1}
+      step={0.01}
+      value={volume}
+      onChange={(event) => setVolume(event.target.valueAsNumber)}
+    />
+  )
 }
 
 function ensureAudioElement() {

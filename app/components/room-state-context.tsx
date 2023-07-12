@@ -1,6 +1,11 @@
 import { createContext, useContext, useEffect, useMemo, useState } from "react"
 import { vinylEvents } from "~/data/vinyl-events"
-import { type Queue, type QueueItem, type Room, type User } from "~/data/vinyl-types"
+import {
+  type Queue,
+  type QueueItem,
+  type Room,
+  type User,
+} from "~/data/vinyl-types"
 import { showNotification } from "~/helpers/notifications"
 
 export function RoomStateProvider({
@@ -33,7 +38,10 @@ export function RoomStateProvider({
       onConnect: () => setConnected(true),
       onDisconnect: () => setConnected(false),
       onMessage: (message) => {
-        if (message.type === "track-activation-error" && message.queue === queue.id) {
+        if (
+          message.type === "track-activation-error" &&
+          message.queue === queue.id
+        ) {
           console.warn("failed to activate track", message.track)
           // todo actual error i guess
         }
@@ -62,18 +70,27 @@ export function RoomStateProvider({
           }
         }
 
-        if (message.type === "player-time" && message.room === `room:${room.id}`) {
+        if (
+          message.type === "player-time" &&
+          message.room === `room:${room.id}`
+        ) {
           setSongProgress(message.seconds)
         }
 
-        if (message.type === "user-entered-room" && message.room === `room:${room.id}`) {
+        if (
+          message.type === "user-entered-room" &&
+          message.room === `room:${room.id}`
+        ) {
           setMembersRecord((members) => ({
             ...members,
             [message.user.id]: message.user,
           }))
         }
 
-        if (message.type === "user-left-room" && message.room === `room:${room.id}`) {
+        if (
+          message.type === "user-left-room" &&
+          message.room === `room:${room.id}`
+        ) {
           setMembersRecord((members) => {
             const newMembers = { ...members }
             delete newMembers[message.user]

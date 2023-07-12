@@ -10,7 +10,10 @@ import { raise } from "~/helpers/errors"
 import { NowPlaying } from "../components/now-playing"
 import { ProgressBar } from "../components/progress-bar"
 import { RoomMembers } from "../components/room-members"
-import { RoomStateProvider, useRoomConnected } from "../components/room-state-context"
+import {
+  RoomStateProvider,
+  useRoomConnected,
+} from "../components/room-state-context"
 
 export function loader({ request, params }: LoaderArgs) {
   const roomId = params.roomId ?? raise("roomId not defined")
@@ -42,19 +45,30 @@ export default function RoomPage() {
   const { data } = useLoaderData<typeof loader>()
   return (
     <Await resolve={data} errorElement={<p>Failed to load room data</p>}>
-      {data =>
-        data
-          ? (
-            <RoomStateProvider room={data.room} queue={data.queue} socketUrl={data.socketUrl}>
-              <RoomPageContent room={data.room} streamUrl={data.streamUrl} />
-            </RoomStateProvider>
-          )
-          : <p>Not logged in</p>}
+      {(data) =>
+        data ? (
+          <RoomStateProvider
+            room={data.room}
+            queue={data.queue}
+            socketUrl={data.socketUrl}
+          >
+            <RoomPageContent room={data.room} streamUrl={data.streamUrl} />
+          </RoomStateProvider>
+        ) : (
+          <p>Not logged in</p>
+        )
+      }
     </Await>
   )
 }
 
-function RoomPageContent({ room, streamUrl }: { room: Room; streamUrl: string }) {
+function RoomPageContent({
+  room,
+  streamUrl,
+}: {
+  room: Room
+  streamUrl: string
+}) {
   const connected = useRoomConnected()
   const roomId = room.id
   return (

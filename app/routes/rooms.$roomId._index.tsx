@@ -1,7 +1,10 @@
 import { useParams } from "@remix-run/react"
 import { $params } from "remix-routes"
 import { QueueItemList } from "~/components/queue-item-list"
-import { useCurrentRoomQueueItem, useRoomQueue } from "~/components/room-state-context"
+import {
+  useCurrentRoomQueueItem,
+  useRoomQueue,
+} from "~/components/room-state-context"
 import { AddSongForm } from "./rooms.$roomId.submit"
 
 export default function RoomQueuePage() {
@@ -16,9 +19,11 @@ export default function RoomQueuePage() {
       <div className="panel">
         <AddSongForm roomId={roomId} />
       </div>
-      {items.length > 0
-        ? <QueueItemList items={items} />
-        : <p>The queue is empty.</p>}
+      {items.length > 0 ? (
+        <QueueItemList items={items} />
+      ) : (
+        <p>The queue is empty.</p>
+      )}
     </section>
   )
 }

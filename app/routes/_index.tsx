@@ -15,7 +15,7 @@ export default function RoomListPage() {
   return (
     <main className="container flex-1 flex-col p-4">
       <Await resolve={rooms} errorElement={<p>Failed to fetch rooms</p>}>
-        {rooms => <RoomListPageContent rooms={rooms} />}
+        {(rooms) => <RoomListPageContent rooms={rooms} />}
       </Await>
     </main>
   )

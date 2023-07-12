@@ -16,7 +16,7 @@ export function Header({ user }: { user: Promise<Nullish<User>> }) {
         <div className="flex flex-1 flex-row justify-end gap-4">
           <Suspense>
             <Await resolve={user}>
-              {user =>
+              {(user) =>
                 user && (
                   <>
                     <p className="text-right leading-none">
@@ -26,7 +26,8 @@ export function Header({ user }: { user: Promise<Nullish<User>> }) {
                     </p>
                     <HeaderMenu />
                   </>
-                )}
+                )
+              }
             </Await>
           </Suspense>
         </div>

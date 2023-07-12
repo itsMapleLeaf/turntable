@@ -1,7 +1,7 @@
-import { type ActionArgs, json } from "@remix-run/node"
+import { json, type ActionArgs } from "@remix-run/node"
 import { useFetcher } from "@remix-run/react"
 import { LucideLink, LucidePlay, LucideYoutube } from "lucide-react"
-import { type ReactNode, useEffect, useState } from "react"
+import { useEffect, useState, type ReactNode } from "react"
 import { $params, $path } from "remix-routes"
 import { type Video } from "scraper-edge"
 import { zfd } from "zod-form-data"
@@ -16,7 +16,9 @@ import { useSearchFetcher } from "~/routes/search"
 export async function action({ request, params }: ActionArgs) {
   try {
     const { roomId } = $params("/rooms/:roomId/submit", params)
-    const body = zfd.formData({ url: zfd.text() }).parse(await request.formData())
+    const body = zfd
+      .formData({ url: zfd.text() })
+      .parse(await request.formData())
     await vinylApi(request).submitSong(roomId, body.url)
   } catch (error) {
     return json({ error: toError(error).message }, 500)
@@ -43,10 +45,12 @@ const submitSources = [
   { name: "YouTube", icon: LucideYoutube },
   { name: "Direct URL", icon: LucideLink },
 ] as const
-type SubmitSource = typeof submitSources[number]
+type SubmitSource = (typeof submitSources)[number]
 
 export function AddSongForm({ roomId }: { roomId: string }) {
-  const [submitSource, setSubmitSource] = useState<SubmitSource>(submitSources[0])
+  const [submitSource, setSubmitSource] = useState<SubmitSource>(
+    submitSources[0],
+  )
 
   const sourceMenu = (
     <Menu>
@@ -69,17 +73,25 @@ export function AddSongForm({ roomId }: { roomId: string }) {
     </Menu>
   )
 
-  return submitSource.name === "YouTube"
-    ? <YouTubeSearchSubmitter roomId={roomId} sourceMenu={sourceMenu} />
-    : <DirectUrlSubmitter roomId={roomId} sourceMenu={sourceMenu} />
+  return submitSource.name === "YouTube" ? (
+    <YouTubeSearchSubmitter roomId={roomId} sourceMenu={sourceMenu} />
+  ) : (
+    <DirectUrlSubmitter roomId={roomId} sourceMenu={sourceMenu} />
+  )
 }
 
-function DirectUrlSubmitter({ roomId, sourceMenu }: { roomId: string; sourceMenu: ReactNode }) {
+function DirectUrlSubmitter({
+  roomId,
+  sourceMenu,
+}: {
+  roomId: string
+  sourceMenu: ReactNode
+}) {
   const trackSubmitFetcher = useTrackSubmitFetcher({ roomId })
   return (
     <form
       className="grid grid-cols-[1fr,auto,auto] gap-2 p-3"
-      onSubmit={event => {
+      onSubmit={(event) => {
         event.preventDefault()
         const form = new FormData(event.currentTarget)
         trackSubmitFetcher.submit(form.get("url") as string)
@@ -94,19 +106,26 @@ function DirectUrlSubmitter({ roomId, sourceMenu }: { roomId: string; sourceMenu
       <Button
         element={<button type="submit" />}
         label={<span className="sr-only sm:not-sr-only">Submit</span>}
-        pendingLabel={<span className="sr-only sm:not-sr-only">Submitting...</span>}
+        pendingLabel={
+          <span className="sr-only sm:not-sr-only">Submitting...</span>
+        }
         pending={trackSubmitFetcher.pending}
         iconElement={<LucidePlay />}
       />
       {sourceMenu}
       {trackSubmitFetcher.data?.error && (
-        <p className="text-error-400 col-span-full">{trackSubmitFetcher.data?.error}</p>
+        <p className="col-span-full text-error-400">
+          {trackSubmitFetcher.data?.error}
+        </p>
       )}
     </form>
   )
 }
 
-function YouTubeSearchSubmitter({ roomId, sourceMenu }: {
+function YouTubeSearchSubmitter({
+  roomId,
+  sourceMenu,
+}: {
   roomId: string
   sourceMenu: ReactNode
 }) {
@@ -164,7 +183,7 @@ function YouTubeSearchSubmitter({ roomId, sourceMenu }: {
       </div>
 
       {searchItems.length > 0 && (
-        <div className="overflow-y-scroll max-h-80">
+        <div className="max-h-80 overflow-y-scroll">
           {searchItems.map((video) => (
             <SearchResultItem key={video.id} roomId={roomId} video={video} />
           ))}
@@ -183,7 +202,9 @@ function SearchResultItem({ roomId, video }: { roomId: string; video: Video }) {
 
   // todo: make this a toast
   useEffect(() => {
-    if (fetcher.data?.error) alert(`Failed to submit "${video.title}": ${fetcher.data.error}`)
+    if (fetcher.data?.error) {
+      alert(`Failed to submit "${video.title}": ${fetcher.data.error}`)
+    }
   }, [fetcher.data?.error, video.title])
 
   return (
@@ -199,7 +220,7 @@ function SearchResultItem({ roomId, video }: { roomId: string; video: Video }) {
         <img
           src={video.thumbnail}
           alt=""
-          className="object-cover w-12 border rounded aspect-square border-white/10"
+          className="aspect-square w-12 rounded border border-white/10 object-cover"
         />
         <div className="flex-1 leading-none">
           <div className="text-sm opacity-75">

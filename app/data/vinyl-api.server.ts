@@ -12,19 +12,19 @@ type Json = string | number | boolean | null | Json[] | { [key: string]: Json }
 
 type BaseFetchArgs<T> =
   | {
-    request: Request
-    method: "GET"
-    path: string
-    schema: z.Schema<T>
-    body?: never
-  }
+      request: Request
+      method: "GET"
+      path: string
+      schema: z.Schema<T>
+      body?: never
+    }
   | {
-    request: Request
-    method: "POST" | "PATCH" | "PUT" | "DELETE"
-    path: string
-    schema: z.Schema<T>
-    body: Json
-  }
+      request: Request
+      method: "POST" | "PATCH" | "PUT" | "DELETE"
+      path: string
+      schema: z.Schema<T>
+      body: Json
+    }
 
 async function vinylFetch<T>({
   request,
@@ -53,7 +53,8 @@ async function vinylFetch<T>({
   if (!response.ok) {
     const error = await response.text().catch(() => undefined)
     throw new VinylApiError(
-      error || `Failed to ${method} ${path} (${response.status} ${response.statusText})`,
+      error ||
+        `Failed to ${method} ${path} (${response.status} ${response.statusText})`,
       response.status,
     )
   }
@@ -124,7 +125,10 @@ export function vinylApi(request: Request) {
         path: "rooms",
         schema: z.array(roomSchema),
       })
-      return rooms.find((r) => r.id === roomId) ?? raise(new VinylApiError("Room not found", 500))
+      return (
+        rooms.find((r) => r.id === roomId) ??
+        raise(new VinylApiError("Room not found", 500))
+      )
     },
 
     async getRoomQueue(roomId: string) {
@@ -163,7 +167,8 @@ export function vinylApi(request: Request) {
       if (!response.ok) {
         const error = await response.text().catch(() => undefined)
         throw new VinylApiError(
-          error || `Failed to submit song (${response.status} ${response.statusText})`,
+          error ||
+            `Failed to submit song (${response.status} ${response.statusText})`,
           response.status,
         )
       }
@@ -172,7 +177,10 @@ export function vinylApi(request: Request) {
 }
 
 export class VinylApiError extends Error {
-  constructor(message: string, readonly status: number) {
+  constructor(
+    message: string,
+    readonly status: number,
+  ) {
     super(message)
   }
 }

@@ -47,7 +47,8 @@ export function loader({ request }: LoaderArgs) {
   const api = vinylApi(request)
   return defer({
     user: api.getUser().catch((error) => {
-      const isUnauthorized = error instanceof VinylApiError && error.status === 401
+      const isUnauthorized =
+        error instanceof VinylApiError && error.status === 401
       if (!isUnauthorized) {
         console.error("Failed to get user:", error)
       }
@@ -72,7 +73,8 @@ export async function action({ request }: ActionArgs) {
   ])
 
   try {
-    const form = await schema.parseAsync(await request.formData())
+    const form = await schema
+      .parseAsync(await request.formData())
       .catch(() => raise("Invalid form data"))
 
     if (form.action === "login") {
@@ -123,13 +125,11 @@ export default function Root() {
           rel="preconnect"
           href="https://fonts.gstatic.com"
           crossOrigin="anonymous"
-        >
-        </link>
+        ></link>
         <link
           href="https://fonts.googleapis.com/css2?family=Pathway+Extreme:wght@300;400;500&display=swap"
           rel="stylesheet"
-        >
-        </link>
+        ></link>
       </head>
       <body
         className="bg-cover bg-fixed bg-center"
@@ -139,7 +139,7 @@ export default function Root() {
           <Header user={user} />
           <Suspense fallback="Loading...">
             <Await resolve={user}>
-              {user => user ? <Outlet /> : <AuthForms />}
+              {(user) => (user ? <Outlet /> : <AuthForms />)}
             </Await>
           </Suspense>
         </div>
@@ -156,92 +156,90 @@ function AuthForms() {
   const pending = usePendingSubmit()
   const { error } = useActionData<typeof action>() ?? {}
 
-  return view === "login"
-    ? (
-      <FormLayout title="Sign In" error={error}>
-        <Label text="Username">
-          <input
-            name="username"
-            type="text"
-            placeholder="awesomeuser"
-            className="input"
-            required
-          />
-        </Label>
-        <Label text="Password">
-          <input
-            name="password"
-            type="password"
-            placeholder="•••••••"
-            className="input"
-            required
-          />
-        </Label>
-        <Button
-          pending={pending}
-          label="Sign in"
-          pendingLabel="Signing in..."
-          iconElement={<LogIn />}
-          element={<button type="submit" name="action" value="login" />}
+  return view === "login" ? (
+    <FormLayout title="Sign In" error={error}>
+      <Label text="Username">
+        <input
+          name="username"
+          type="text"
+          placeholder="awesomeuser"
+          className="input"
+          required
         />
-        <p>
-          Don't have an account?{" "}
-          <NavLink
-            to="?auth-view=register"
-            replace
-            className="link underline inline-flex gap-2 items-center"
-          >
-            {state => <>Create one {state.isPending && <Spinner size={4} />}</>}
-          </NavLink>
-        </p>
-      </FormLayout>
-    )
-    : (
-      <FormLayout title="Register" error={error}>
-        <Label text="Username">
-          <input
-            name="username"
-            type="text"
-            placeholder="awesomeuser"
-            className="input"
-            required
-          />
-        </Label>
-        <Label text="Password">
-          <input
-            name="password"
-            type="password"
-            placeholder="•••••••"
-            className="input"
-            required
-          />
-        </Label>
-        <Label text="Confirm Password">
-          <input
-            name="passwordRepeat"
-            type="password"
-            placeholder="•••••••"
-            className="input"
-            required
-          />
-        </Label>
-        <Button
-          pending={pending}
-          label="Register"
-          pendingLabel="Registering..."
-          iconElement={<UserPlus />}
-          element={<button type="submit" name="action" value="register" />}
+      </Label>
+      <Label text="Password">
+        <input
+          name="password"
+          type="password"
+          placeholder="•••••••"
+          className="input"
+          required
         />
-        <p>
-          Already have an account?{" "}
-          <NavLink
-            to="?auth-view=login"
-            replace
-            className="link underline inline-flex gap-2 items-center"
-          >
-            {state => <>Sign in {state.isPending && <Spinner size={4} />}</>}
-          </NavLink>
-        </p>
-      </FormLayout>
-    )
+      </Label>
+      <Button
+        pending={pending}
+        label="Sign in"
+        pendingLabel="Signing in..."
+        iconElement={<LogIn />}
+        element={<button type="submit" name="action" value="login" />}
+      />
+      <p>
+        Don't have an account?{" "}
+        <NavLink
+          to="?auth-view=register"
+          replace
+          className="link inline-flex items-center gap-2 underline"
+        >
+          {(state) => <>Create one {state.isPending && <Spinner size={4} />}</>}
+        </NavLink>
+      </p>
+    </FormLayout>
+  ) : (
+    <FormLayout title="Register" error={error}>
+      <Label text="Username">
+        <input
+          name="username"
+          type="text"
+          placeholder="awesomeuser"
+          className="input"
+          required
+        />
+      </Label>
+      <Label text="Password">
+        <input
+          name="password"
+          type="password"
+          placeholder="•••••••"
+          className="input"
+          required
+        />
+      </Label>
+      <Label text="Confirm Password">
+        <input
+          name="passwordRepeat"
+          type="password"
+          placeholder="•••••••"
+          className="input"
+          required
+        />
+      </Label>
+      <Button
+        pending={pending}
+        label="Register"
+        pendingLabel="Registering..."
+        iconElement={<UserPlus />}
+        element={<button type="submit" name="action" value="register" />}
+      />
+      <p>
+        Already have an account?{" "}
+        <NavLink
+          to="?auth-view=login"
+          replace
+          className="link inline-flex items-center gap-2 underline"
+        >
+          {(state) => <>Sign in {state.isPending && <Spinner size={4} />}</>}
+        </NavLink>
+      </p>
+    </FormLayout>
+  )
 }

@@ -9,7 +9,13 @@ export function Menu({ children }: { children: React.ReactNode }) {
   return <Popover.Root>{children}</Popover.Root>
 }
 
-export function MenuButton({ children, asChild }: { children: ReactNode; asChild?: boolean }) {
+export function MenuButton({
+  children,
+  asChild,
+}: {
+  children: ReactNode
+  asChild?: boolean
+}) {
   const Component = asChild ? Slot : "button"
   return (
     <Popover.Trigger asChild>
@@ -33,26 +39,37 @@ export function MenuPanel({ children }: { children: ReactNode }) {
 }
 
 export function MenuItemButton(
-  props: ComponentPropsWithoutRef<"button"> & { label: ReactNode; icon: LucideIcon },
+  props: ComponentPropsWithoutRef<"button"> & {
+    label: ReactNode
+    icon: LucideIcon
+  },
 ) {
   return (
     <Popover.Close
       {...props}
-      className={clsx("link flex flex-row items-center gap-2 px-3 py-2", props.className)}
+      className={clsx(
+        "link flex flex-row items-center gap-2 px-3 py-2",
+        props.className,
+      )}
     >
-      <props.icon className="w-5 h-5" aria-hidden /> {props.label}
+      <props.icon className="h-5 w-5" aria-hidden /> {props.label}
     </Popover.Close>
   )
 }
 
-export function MenuItemLink(props: LinkProps & { label: ReactNode; icon: LucideIcon }) {
+export function MenuItemLink(
+  props: LinkProps & { label: ReactNode; icon: LucideIcon },
+) {
   return (
     <Popover.Close asChild>
       <Link
         {...props}
-        className={clsx("link flex flex-row items-center gap-2 px-3 py-2", props.className)}
+        className={clsx(
+          "link flex flex-row items-center gap-2 px-3 py-2",
+          props.className,
+        )}
       >
-        <props.icon className="w-5 h-5" aria-hidden /> {props.label}
+        <props.icon className="h-5 w-5" aria-hidden /> {props.label}
       </Link>
     </Popover.Close>
   )

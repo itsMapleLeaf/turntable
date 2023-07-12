@@ -1,5 +1,8 @@
 import { clamp } from "~/helpers/math"
-import { useCurrentRoomQueueItem, useRoomSongProgress } from "./room-state-context"
+import {
+  useCurrentRoomQueueItem,
+  useRoomSongProgress,
+} from "./room-state-context"
 
 export function ProgressBar() {
   const item = useCurrentRoomQueueItem()
