@@ -1,5 +1,5 @@
 /** @type {import('prettier').Config} */
-module.exports = {
+export default {
   semi: false,
   quoteProps: "consistent",
   plugins: ["prettier-plugin-tailwindcss"],
