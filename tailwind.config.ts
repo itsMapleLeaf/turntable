@@ -1,8 +1,8 @@
 // eslint-disable-next-line @typescript-eslint/no-var-requires
-const colors = require("tailwindcss/colors")
+import { type Config } from "tailwindcss"
+import colors from "tailwindcss/colors"
 
-/** @type {import('tailwindcss').Config} */
-module.exports = {
+export default {
   content: ["./app/**/*.{js,ts,jsx,tsx,mdx}"],
   theme: {
     colors: {
@@ -11,20 +11,20 @@ module.exports = {
       gray: colors.neutral,
       accent: colors.amber,
       error: colors.red,
-      transparent: "transparent",
+      transparent: colors.transparent,
     },
     extend: {
       fontFamily: {
         sans: `"Pathway Extreme", sans-serif`,
       },
       borderColor: {
-        current: "currentColor",
+        current: colors.current,
       },
       minWidth: (utils) => ({
-        ...utils.theme("width"),
+        ...(utils.theme("width") as object),
       }),
       maxWidth: (utils) => ({
-        ...utils.theme("width"),
+        ...(utils.theme("width") as object),
       }),
     },
   },
@@ -32,4 +32,4 @@ module.exports = {
   corePlugins: {
     container: false,
   },
-}
+} satisfies Config

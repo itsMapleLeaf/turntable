@@ -11,5 +11,5 @@ export default {
     v2_dev: true,
   },
   serverDependenciesToBundle: ["pretty-ms", "parse-ms"],
-  watchPaths: ["./tailwind.config.cjs"],
+  watchPaths: ["./tailwind.config.ts"],
 }
