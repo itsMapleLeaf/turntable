@@ -1,0 +1,13 @@
+diff --git a/dist/cli/commands.js b/dist/cli/commands.js
+index 05199e3cf4e5a45f5fb0da7ecc571853f82d57b9..77b7319cf88b3430eecff6284c715f57679b392e 100644
+--- a/dist/cli/commands.js
++++ b/dist/cli/commands.js
+@@ -218,8 +218,6 @@ async function watch(remixRootOrConfig, modeArg) {
+   return await new Promise(() => {});
+ }
+ async function dev(remixRoot, flags = {}) {
+-  // clear screen
+-  process.stdout.write("\x1Bc");
+   console.log(`\n 💿  remix dev\n`);
+   if (process.env.NODE_ENV && process.env.NODE_ENV !== "development") {
+     logger.logger.warn(`overriding NODE_ENV=${process.env.NODE_ENV} to development`);
