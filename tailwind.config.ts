@@ -1,6 +1,7 @@
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 import { type Config } from "tailwindcss"
 import colors from "tailwindcss/colors"
+import plugin from "tailwindcss/plugin"
 
 export default {
   content: ["./app/**/*.{js,ts,jsx,tsx,mdx}"],
@@ -28,7 +29,14 @@ export default {
       }),
     },
   },
-  plugins: [],
+  plugins: [
+    plugin(function sizePlugin(api) {
+      api.matchUtilities(
+        { s: (value) => ({ width: value, height: value }) },
+        { values: api.theme("width") },
+      )
+    }),
+  ],
   corePlugins: {
     container: false,
   },
