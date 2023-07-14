@@ -22,17 +22,17 @@ export default {
         current: colors.current,
       },
       minWidth: (utils) => ({
-        ...(utils.theme("width") as object),
+        ...(utils.theme("width") as Record<string, string>),
       }),
       maxWidth: (utils) => ({
-        ...(utils.theme("width") as object),
+        ...(utils.theme("width") as Record<string, string>),
       }),
     },
   },
   plugins: [
     plugin(function sizePlugin(api) {
       api.matchUtilities(
-        { s: (value) => ({ width: value, height: value }) },
+        { s: (value: string) => ({ width: value, height: value }) },
         { values: api.theme("width") },
       )
     }),
