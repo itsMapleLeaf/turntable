@@ -1,6 +1,7 @@
 import { TRPCError, initTRPC } from "@trpc/server"
 import { z } from "zod"
 import { queueSchema, roomSchema, userSchema } from "~/data/vinyl-types"
+import { searchYouTube } from "~/data/youtube.server"
 import { type Context } from "./context.server"
 import { createSession, destroySession } from "./session.server"
 
@@ -101,6 +102,12 @@ export const appRouter = t.router({
           body: args.input.url,
         })
       }),
+  }),
+
+  youtube: t.router({
+    search: t.procedure
+      .input(z.object({ query: z.string() }))
+      .query((args) => searchYouTube(args.input.query)),
   }),
 })
 

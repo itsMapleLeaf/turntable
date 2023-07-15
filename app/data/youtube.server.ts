@@ -1,5 +1,5 @@
+import { LRUCache } from "lru-cache"
 import { Scraper, type Video } from "scraper-edge"
-import { Cache } from "~/helpers/cache"
 import { delay } from "../helpers/delay"
 export { type Video } from "scraper-edge"
 
@@ -9,32 +9,21 @@ export type YouTubeResult<T> =
   | { data: T; error?: null }
   | { data?: null; error: string }
 
-const searchCache = new Cache<Video[]>({
-  maxSize: 100,
-  expiryTime: 1000 * 60 * 5,
+const searchCache = new LRUCache<string, Video[]>({
+  max: 100,
+  ttl: 1000 * 60 * 5,
 })
 
-export async function searchYouTube(
-  query: string,
-): Promise<YouTubeResult<Video[]>> {
+export async function searchYouTube(query: string): Promise<Video[]> {
   const cached = searchCache.get(query)
-  if (cached) return { data: cached }
+  if (cached) return cached
 
-  try {
-    const results = await Promise.race([
-      yt.search(query, { searchType: "VIDEO", language: "en" }),
-      delay(10_000).then(() => {
-        throw new Error("Timed out")
-      }),
-    ])
-    searchCache.set(query, results.videos)
-    return { data: results.videos }
-  } catch (error) {
-    return {
-      error:
-        error instanceof Error
-          ? `YouTube search failed: ${error.message}`
-          : "YouTube search failed",
-    }
-  }
+  const results = await Promise.race([
+    yt.search(query, { searchType: "VIDEO", language: "en" }),
+    delay(10_000).then(() => {
+      throw new Error("Timed out")
+    }),
+  ])
+  searchCache.set(query, results.videos)
+  return results.videos
 }

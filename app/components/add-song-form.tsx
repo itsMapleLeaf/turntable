@@ -5,7 +5,6 @@ import { Button } from "~/components/button"
 import { Menu, MenuButton, MenuItemButton, MenuPanel } from "~/components/menu"
 import { Spinner } from "~/components/spinner"
 import { mod } from "~/helpers/math"
-import { useSearchFetcher } from "~/routes/search"
 import { trpc } from "~/trpc/client"
 
 const submitSources = [
@@ -92,9 +91,12 @@ function YouTubeSearchSubmitter({
   roomId: string
   sourceMenu: ReactNode
 }) {
-  const searchFetcher = useSearchFetcher()
-  const searchItems = searchFetcher.data?.data ?? []
-  const [searchInputEmpty, setSearchInputEmpty] = useState(true)
+  const [query, setQuery] = useState("")
+
+  const searchQuery = trpc.youtube.search.useQuery(
+    { query },
+    { enabled: !!query.trim() },
+  )
 
   return (
     // eslint-disable-next-line jsx-a11y/no-static-element-interactions
@@ -122,43 +124,54 @@ function YouTubeSearchSubmitter({
         }
       }}
     >
-      <div className="flex flex-row gap-2 p-3">
-        <input
-          name="url"
-          placeholder="Search YouTube"
-          className="input flex-1"
-          required
-          data-focus-target
-          onChange={(event) => {
-            searchFetcher.load(event.target.value)
-            setSearchInputEmpty(event.target.value.trim() === "")
-          }}
-          onKeyDown={(event) => {
-            if (event.key === "Enter") {
-              event.preventDefault()
-              document
-                .querySelector<HTMLElement>("[data-search-result-item]")
-                ?.click()
-            }
-          }}
-        />
+      <div className="flex gap-2 p-3">
+        <div className="relative flex flex-1">
+          <input
+            name="url"
+            placeholder="Search YouTube"
+            className="input flex-1"
+            required
+            data-focus-target
+            onChange={(event) => setQuery(event.target.value)}
+            onKeyDown={(event) => {
+              if (event.key === "Enter") {
+                event.preventDefault()
+                document
+                  .querySelector<HTMLElement>("[data-search-result-item]")
+                  ?.click()
+              }
+            }}
+          />
+          <div
+            className={`absolute right-3 self-center transition-opacity ${
+              searchQuery.isFetching ? "opacity-100" : "opacity-0"
+            }`}
+          >
+            <Spinner />
+          </div>
+        </div>
         {sourceMenu}
       </div>
 
-      {searchItems.length > 0 && (
+      {query.trim() === "" ? null : searchQuery.isLoading ? (
+        <p className="p-3">Loading results...</p>
+      ) : searchQuery.isError ? (
+        <p className="p-3">
+          Failed to fetch items: {searchQuery.error.message}
+        </p>
+      ) : searchQuery.data.length === 0 ? (
+        <p className="p-3">No results found.</p>
+      ) : (
         <div className="max-h-80 overflow-y-scroll">
-          {searchItems.map((video) => (
+          {searchQuery.data.map((video) => (
             <SearchResultItem key={video.id} roomId={roomId} video={video} />
           ))}
         </div>
       )}
-
-      {searchFetcher.data?.data?.length === 0 && !searchInputEmpty && (
-        <p className="p-3 opacity-75">No results found.</p>
-      )}
     </div>
   )
 }
+
 function SearchResultItem({ roomId, video }: { roomId: string; video: Video }) {
   const mutation = trpc.rooms.submit.useMutation()
 

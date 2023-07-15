@@ -34,6 +34,7 @@
     "clsx": "^1.2.1",
     "downshift": "^7.6.0",
     "isbot": "^3.6.12",
+    "lru-cache": "^10.0.0",
     "lucide-react": "^0.259.0",
     "pretty-ms": "^8.0.0",
     "react": "^18.2.0",
