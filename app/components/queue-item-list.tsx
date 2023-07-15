@@ -1,5 +1,5 @@
 import prettyMilliseconds from "pretty-ms"
-import { type ComponentPropsWithoutRef, useEffect, useRef } from "react"
+import { useEffect, useRef, type ComponentPropsWithoutRef } from "react"
 import { Virtuoso } from "react-virtuoso"
 import {
   useCurrentRoomQueueItem,
@@ -29,7 +29,7 @@ export function QueueItemList({ items }: { items: QueueItem[] }) {
           className="group flex flex-row gap-3 border border-transparent from-accent-200/10 p-3 transition-colors hover:text-accent-200 data-[active]:border-accent-200/25 data-[active]:bg-gradient-to-r data-[active]:text-accent-200"
         >
           {metadata.artwork ? (
-            <FancyImage
+            <img
               src={metadata.artwork}
               alt=""
               className="h-12 w-12 rounded border border-white/10 object-cover transition-colors group-hover:border-accent-200/25"

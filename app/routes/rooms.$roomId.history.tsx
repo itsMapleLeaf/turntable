@@ -1,12 +1,9 @@
 import { QueueItemList } from "~/components/queue-item-list"
-import {
-  useCurrentRoomQueueItem,
-  useRoomQueue,
-} from "~/components/room-state-context"
+import { useCurrentQueueItemContext, useQueueContext } from "./rooms.$roomId"
 
 export default function RoomHistoryPage() {
-  const queue = useRoomQueue()
-  const current = useCurrentRoomQueueItem()
+  const queue = useQueueContext()
+  const current = useCurrentQueueItemContext()
   const currentIndex = queue.items.findIndex((i) => i.id === current?.id)
   const historyItems = queue.items.slice(0, currentIndex).reverse()
 

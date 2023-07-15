@@ -1,9 +1,16 @@
 import { ReconnectingEventSource } from "@jessestolwijk/reconnecting-event-source"
-import { NavLink, useParams } from "@remix-run/react"
+import { NavLink, Outlet, useParams } from "@remix-run/react"
 import { useQueryClient } from "@tanstack/react-query"
 import { getQueryKey } from "@trpc/react-query"
 import { LucidePlayCircle } from "lucide-react"
-import { useCallback, useEffect, useMemo, useState } from "react"
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from "react"
 import { $params, $path } from "remix-routes"
 import { z } from "zod"
 import { AuthGuard } from "~/components/auth-guard"
@@ -14,9 +21,11 @@ import { Spinner } from "~/components/spinner"
 import {
   vinylEventSchema,
   type Queue,
+  type QueueItem,
   type Room,
   type VinylEvent,
 } from "~/data/vinyl-types"
+import { raise } from "~/helpers/errors"
 import { useAsync } from "~/helpers/use-async"
 import { useEffectEvent } from "~/helpers/use-effect-event"
 import { useLocalStorageState } from "~/helpers/use-local-storage-state"
@@ -178,7 +187,11 @@ function RoomPageContent({
             </NavLink>
           </nav>
         </div>
-        {/* <Outlet /> */}
+        <QueueContext.Provider value={queue}>
+          <CurrentQueueItemContext.Provider value={currentItem}>
+            <Outlet />
+          </CurrentQueueItemContext.Provider>
+        </QueueContext.Provider>
       </div>
 
       <footer className="panel sticky bottom-0">
@@ -235,3 +248,11 @@ function uniqueBy<T>(items: T[], key: (item: T) => string) {
     return true
   })
 }
+
+const QueueContext = createContext<Queue | undefined>(undefined)
+export const useQueueContext = () =>
+  useContext(QueueContext) ?? raise("QueueContext not found")
+
+const CurrentQueueItemContext = createContext<QueueItem | undefined>(undefined)
+export const useCurrentQueueItemContext = () =>
+  useContext(CurrentQueueItemContext)
