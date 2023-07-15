@@ -1,6 +1,6 @@
 import { type FetchCreateContextFnOptions } from "@trpc/server/adapters/fetch"
 import { getSession } from "./session.server"
-import { createVinylApi } from "./vinyl-fetch.server"
+import { createVinylApi } from "./vinyl-api.server"
 
 export async function createContext({
   req,
