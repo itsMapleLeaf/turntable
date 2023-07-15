@@ -1,10 +1,10 @@
 import {
-  type ActionArgs,
   defer,
   json,
+  redirect,
+  type ActionArgs,
   type LinksFunction,
   type LoaderArgs,
-  redirect,
   type V2_MetaFunction,
 } from "@remix-run/node"
 import {
@@ -30,7 +30,7 @@ import { Button } from "./components/button"
 import { FormLayout } from "./components/form-layout"
 import { Header } from "./components/header"
 import { Spinner } from "./components/spinner"
-import { vinylApi, VinylApiError } from "./data/vinyl-api.server"
+import { VinylApiError, vinylApi } from "./data/vinyl-api.server"
 import { createSession } from "./data/vinyl-session"
 import { raise, toError } from "./helpers/errors"
 import { usePendingSubmit } from "./helpers/use-pending-submit"
@@ -153,10 +153,14 @@ export default function Root() {
 function AuthForms() {
   const [searchParams] = useSearchParams()
   const view = searchParams.get("auth-view") ?? "login"
+  return view === "login" ? <SignInForm /> : <RegisterForm />
+}
+
+function SignInForm() {
   const pending = usePendingSubmit()
   const { error } = useActionData<typeof action>() ?? {}
 
-  return view === "login" ? (
+  return (
     <FormLayout title="Sign In" error={error}>
       <Label text="Username">
         <input
@@ -194,7 +198,14 @@ function AuthForms() {
         </NavLink>
       </p>
     </FormLayout>
-  ) : (
+  )
+}
+
+function RegisterForm() {
+  const pending = usePendingSubmit()
+  const { error } = useActionData<typeof action>() ?? {}
+
+  return (
     <FormLayout title="Register" error={error}>
       <Label text="Username">
         <input
