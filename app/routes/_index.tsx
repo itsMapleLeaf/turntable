@@ -15,22 +15,15 @@ export default function RoomListPage() {
   return (
     <main className="container flex-1 flex-col p-4">
       <Await resolve={rooms} errorElement={<p>Failed to fetch rooms</p>}>
-        {(rooms) => <RoomListPageContent rooms={rooms} />}
+        {(rooms) =>
+          rooms.length > 0 ? <RoomList rooms={rooms} /> : <RoomListEmptyState />
+        }
       </Await>
     </main>
   )
 }
 
-function RoomListPageContent({ rooms }: { rooms: Room[] }) {
-  if (rooms.length === 0) {
-    return (
-      <div className="flex flex-col items-center gap-4 py-16 text-center">
-        <p className="text-2xl font-light">No rooms found.</p>
-        <Button element={<Link to="/rooms/new" />} label="Create one!" />
-      </div>
-    )
-  }
-
+function RoomList({ rooms }: { rooms: Room[] }) {
   return (
     <ul className="grid grid-cols-[repeat(auto-fill,minmax(12rem,1fr))] gap-4">
       {rooms.map((room) => (
@@ -52,5 +45,14 @@ function RoomListPageContent({ rooms }: { rooms: Room[] }) {
         </li>
       ))}
     </ul>
+  )
+}
+
+function RoomListEmptyState() {
+  return (
+    <div className="flex flex-col items-center gap-4 py-16 text-center">
+      <p className="text-2xl font-light">No rooms found.</p>
+      <Button element={<Link to="/rooms/new" />} label="Create one!" />
+    </div>
   )
 }
