@@ -1,24 +1,29 @@
-import { defer, type LoaderArgs } from "@remix-run/node"
-import { Await, Link, useLoaderData } from "@remix-run/react"
+import { Link } from "@remix-run/react"
 import { Disc } from "lucide-react"
+import { AuthGuard } from "~/components/auth-guard"
 import { Button } from "~/components/button"
-import { vinylApi } from "~/data/vinyl-api.server"
+import { QueryResult } from "~/components/query-result"
 import { type Room } from "~/data/vinyl-types"
-
-export function loader({ request }: LoaderArgs) {
-  const api = vinylApi(request)
-  return defer({ rooms: api.getRooms() })
-}
+import { trpc } from "~/trpc/client"
 
 export default function RoomListPage() {
-  const { rooms } = useLoaderData<typeof loader>()
+  const roomsQuery = trpc.rooms.list.useQuery()
   return (
     <main className="container flex-1 flex-col p-4">
-      <Await resolve={rooms} errorElement={<p>Failed to fetch rooms</p>}>
-        {(rooms) =>
-          rooms.length > 0 ? <RoomList rooms={rooms} /> : <RoomListEmptyState />
-        }
-      </Await>
+      <AuthGuard>
+        <QueryResult
+          query={roomsQuery}
+          loadingText="Loading rooms..."
+          errorPrefix="Failed to load rooms"
+          render={(rooms) =>
+            rooms.length === 0 ? (
+              <p>No rooms found.</p>
+            ) : (
+              <RoomList rooms={rooms} />
+            )
+          }
+        />
+      </AuthGuard>
     </main>
   )
 }
@@ -48,6 +53,8 @@ function RoomList({ rooms }: { rooms: Room[] }) {
   )
 }
 
+// TODO: use this when creating rooms doesn't break vinyl
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function RoomListEmptyState() {
   return (
     <div className="flex flex-col items-center gap-4 py-16 text-center">

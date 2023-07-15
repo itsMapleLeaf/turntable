@@ -1,6 +1,6 @@
 import { TRPCError, initTRPC } from "@trpc/server"
 import { z } from "zod"
-import { userSchema } from "~/data/vinyl-types"
+import { roomSchema, userSchema } from "~/data/vinyl-types"
 import { type Context } from "./context.server"
 import { createSession, destroySession } from "./session.server"
 
@@ -59,6 +59,12 @@ export const appRouter = t.router({
         throw error
       })
       return user ? userSchema.parse(user) : null
+    }),
+  }),
+
+  rooms: t.router({
+    list: t.procedure.query(async (args) => {
+      return z.array(roomSchema).parse(await args.ctx.api.get("rooms"))
     }),
   }),
 })

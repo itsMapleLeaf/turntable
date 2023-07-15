@@ -1,12 +1,10 @@
 import { type LinksFunction, type V2_MetaFunction } from "@remix-run/node"
 import { Links, LiveReload, Meta, Outlet, Scripts } from "@remix-run/react"
-import { type ReactNode } from "react"
 import background from "./assets/background.jpg"
 import favicon from "./assets/favicon.png"
-import { AuthForms } from "./components/auth-forms"
 import { Header } from "./components/header"
 import style from "./style.css"
-import { TrpcProvider, trpc } from "./trpc/client"
+import { TrpcProvider } from "./trpc/client"
 
 export const meta: V2_MetaFunction = () => [{ title: "Turntable" }]
 
@@ -53,20 +51,11 @@ function Document() {
       >
         <div className="relative isolate flex min-h-screen flex-col bg-black/50">
           <Header />
-          <AuthGuard>
-            <Outlet />
-          </AuthGuard>
+          <Outlet />
         </div>
         <Scripts />
         <LiveReload />
       </body>
     </html>
   )
-}
-
-function AuthGuard({ children }: { children: ReactNode }) {
-  const userQuery = trpc.auth.user.useQuery()
-  if (userQuery.isLoading) return <p>Loading...</p>
-  if (!userQuery.data) return <AuthForms />
-  return children
 }
