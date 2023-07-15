@@ -1,8 +1,7 @@
 import * as Tooltip from "@radix-ui/react-tooltip"
-import { useRoomMembers } from "./room-state-context"
+import { type User } from "~/data/vinyl-types"
 
-export function RoomMembers() {
-  const members = useRoomMembers()
+export function RoomMembers({ members }: { members: User[] }) {
   return (
     <Tooltip.Provider>
       <ul className="flex flex-row-reverse flex-wrap -space-x-2 space-x-reverse">

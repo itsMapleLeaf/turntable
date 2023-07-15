@@ -12,6 +12,7 @@ import { RoomMembers } from "../components/room-members"
 import {
   RoomStateProvider,
   useRoomConnected,
+  useRoomMembers,
 } from "../components/room-state-context"
 
 export default function RoomPage() {
@@ -45,6 +46,7 @@ function RoomPageContent({
   streamUrl: string
 }) {
   const connected = useRoomConnected()
+  const members = useRoomMembers()
   const roomId = room.id
   return (
     <>
@@ -52,7 +54,7 @@ function RoomPageContent({
         <div className="panel flex flex-col gap-3 p-3">
           <header className="flex flex-wrap items-center">
             <h1 className="flex-1 text-2xl font-light">{room.name}</h1>
-            <RoomMembers />
+            <RoomMembers members={members} />
           </header>
           <nav className="flex flex-row flex-wrap gap-3">
             <NavLink
