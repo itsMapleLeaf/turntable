@@ -35,6 +35,7 @@ import { createSession } from "./data/vinyl-session.server"
 import { raise, toError } from "./helpers/errors"
 import { usePendingSubmit } from "./helpers/use-pending-submit"
 import style from "./style.css"
+import { TrpcProvider, trpc } from "./trpc/client"
 
 export const meta: V2_MetaFunction = () => [{ title: "Turntable" }]
 
@@ -107,7 +108,18 @@ export async function action({ request }: ActionArgs) {
 }
 
 export default function Root() {
+  return (
+    <TrpcProvider>
+      <Document />
+    </TrpcProvider>
+  )
+}
+
+function Document() {
   const { user } = useLoaderData<typeof loader>()
+
+  console.log(trpc.hello.useQuery())
+
   return (
     <html
       lang="en"
