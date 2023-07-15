@@ -183,6 +183,23 @@ function RoomPageContent({
     return () => getAudioElement().pause()
   }, [])
 
+  const [audioStalled, setAudioStalled] = useState(false)
+  useEffect(() => {
+    const audio = getAudioElement()
+    const handleStalled = () => setAudioStalled(true)
+    const handleCanPlay = () => setAudioStalled(false)
+
+    audio.addEventListener("stalled", handleStalled)
+    audio.addEventListener("playing", handleCanPlay)
+
+    return () => {
+      audio.removeEventListener("stalled", handleStalled)
+      audio.removeEventListener("playing", handleCanPlay)
+    }
+  }, [])
+
+  const pending = !connected || audioState.status === "pending" || audioStalled
+
   return (
     <>
       <div className="container grid flex-1 content-start gap-4 py-4">
@@ -229,7 +246,7 @@ function RoomPageContent({
               max={1}
               step={0.01}
             />
-            {connected ? null : <Spinner />}
+            {pending && <Spinner />}
             {audioState.status === "error" && (
               <button type="button" title="Play" onClick={playAudio}>
                 <LucidePlayCircle />
