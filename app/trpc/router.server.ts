@@ -91,18 +91,16 @@ export const appRouter = t.router({
       }
     }),
 
-    queue: t.router({
-      add: t.procedure
-        .input(z.object({ roomId: z.string(), url: z.string() }))
-        .mutation(async (args) => {
-          await args.ctx.api.vinylFetch({
-            method: "POST",
-            endpoint: `rooms/${args.input.roomId}/queue`,
-            headers: { "Content-Type": "text/plain" },
-            body: args.input.url,
-          })
-        }),
-    }),
+    submit: t.procedure
+      .input(z.object({ roomId: z.string(), url: z.string() }))
+      .mutation(async (args) => {
+        await args.ctx.api.vinylFetch({
+          method: "POST",
+          endpoint: `rooms/${args.input.roomId}/queue`,
+          headers: { "Content-Type": "text/plain" },
+          body: args.input.url,
+        })
+      }),
   }),
 })
 

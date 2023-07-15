@@ -1,45 +1,12 @@
-import { json, type ActionArgs } from "@remix-run/node"
-import { useFetcher } from "@remix-run/react"
 import { LucideLink, LucidePlay, LucideYoutube } from "lucide-react"
-import { useEffect, useState, type ReactNode } from "react"
-import { $params, $path } from "remix-routes"
+import { useState, type ReactNode } from "react"
 import { type Video } from "scraper-edge"
-import { zfd } from "zod-form-data"
 import { Button } from "~/components/button"
 import { Menu, MenuButton, MenuItemButton, MenuPanel } from "~/components/menu"
 import { Spinner } from "~/components/spinner"
-import { vinylApi } from "~/data/vinyl-api.server"
-import { toError } from "~/helpers/errors"
 import { mod } from "~/helpers/math"
 import { useSearchFetcher } from "~/routes/search"
-
-export async function action({ request, params }: ActionArgs) {
-  try {
-    const { roomId } = $params("/rooms/:roomId/submit", params)
-    const body = zfd
-      .formData({ url: zfd.text() })
-      .parse(await request.formData())
-    await vinylApi(request).submitSong(roomId, body.url)
-  } catch (error) {
-    return json({ error: toError(error).message }, 500)
-  }
-  return json({ error: null })
-}
-
-function useTrackSubmitFetcher({ roomId }: { roomId: string }) {
-  const { data, state, submit: baseSubmit } = useFetcher<typeof action>()
-  const pending = state === "submitting"
-
-  const submit = (url: string) => {
-    if (pending) return
-    baseSubmit(
-      { url },
-      { action: $path("/rooms/:roomId/submit", { roomId }), method: "POST" },
-    )
-  }
-
-  return { data, pending, submit }
-}
+import { trpc } from "~/trpc/client"
 
 const submitSources = [
   { name: "YouTube", icon: LucideYoutube },
@@ -79,7 +46,6 @@ export function AddSongForm({ roomId }: { roomId: string }) {
     <DirectUrlSubmitter roomId={roomId} sourceMenu={sourceMenu} />
   )
 }
-
 function DirectUrlSubmitter({
   roomId,
   sourceMenu,
@@ -87,14 +53,14 @@ function DirectUrlSubmitter({
   roomId: string
   sourceMenu: ReactNode
 }) {
-  const trackSubmitFetcher = useTrackSubmitFetcher({ roomId })
+  const mutation = trpc.rooms.submit.useMutation()
   return (
     <form
       className="grid grid-cols-[1fr,auto,auto] gap-2 p-3"
       onSubmit={(event) => {
         event.preventDefault()
         const form = new FormData(event.currentTarget)
-        trackSubmitFetcher.submit(form.get("url") as string)
+        mutation.mutate({ roomId, url: form.get("url") as string })
       }}
     >
       <input
@@ -109,19 +75,16 @@ function DirectUrlSubmitter({
         pendingLabel={
           <span className="sr-only sm:not-sr-only">Submitting...</span>
         }
-        pending={trackSubmitFetcher.pending}
+        pending={mutation.isLoading}
         iconElement={<LucidePlay />}
       />
       {sourceMenu}
-      {trackSubmitFetcher.data?.error && (
-        <p className="col-span-full text-error-400">
-          {trackSubmitFetcher.data?.error}
-        </p>
+      {mutation.isError && (
+        <p className="col-span-full text-error-400">{mutation.error.message}</p>
       )}
     </form>
   )
 }
-
 function YouTubeSearchSubmitter({
   roomId,
   sourceMenu,
@@ -196,26 +159,18 @@ function YouTubeSearchSubmitter({
     </div>
   )
 }
-
 function SearchResultItem({ roomId, video }: { roomId: string; video: Video }) {
-  const fetcher = useTrackSubmitFetcher({ roomId })
-
-  // todo: make this a toast
-  useEffect(() => {
-    if (fetcher.data?.error) {
-      alert(`Failed to submit "${video.title}": ${fetcher.data.error}`)
-    }
-  }, [fetcher.data?.error, video.title])
+  const mutation = trpc.rooms.submit.useMutation()
 
   return (
     <>
       <button
         type="button"
         className="button flex w-full items-center gap-3 rounded-none border-none bg-transparent text-left ring-inset data-[pending]:opacity-75"
-        data-pending={fetcher.pending || undefined}
+        data-pending={mutation.isLoading || undefined}
         data-focus-target
         data-search-result-item
-        onClick={() => fetcher.submit(video.link)}
+        onClick={() => mutation.mutate({ roomId, url: video.link })}
       >
         <img
           src={video.thumbnail}
@@ -227,9 +182,14 @@ function SearchResultItem({ roomId, video }: { roomId: string; video: Video }) {
             {video.channel.name} &bull; {video.duration_raw}
           </div>
           <div>{video.title}</div>
+          {mutation.isError && (
+            <div className="text-sm text-error-400">
+              {mutation.error.message}
+            </div>
+          )}
         </div>
         <div
-          data-pending={fetcher.pending || undefined}
+          data-pending={mutation.isLoading || undefined}
           className="opacity-0 transition-opacity data-[pending]:opacity-100"
         >
           <Spinner />

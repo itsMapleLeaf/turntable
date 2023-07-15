@@ -5,7 +5,7 @@ import {
   useCurrentRoomQueueItem,
   useRoomQueue,
 } from "~/components/room-state-context"
-import { AddSongForm } from "./rooms.$roomId.submit"
+import { AddSongForm } from "../components/add-song-form"
 
 export default function RoomQueuePage() {
   const { roomId } = $params("/rooms/:roomId", useParams())
