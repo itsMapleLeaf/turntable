@@ -26,6 +26,7 @@ import {
   type VinylEvent,
 } from "~/data/vinyl-types"
 import { raise } from "~/helpers/errors"
+import { showNotification } from "~/helpers/notifications"
 import { useAsync } from "~/helpers/use-async"
 import { useEffectEvent } from "~/helpers/use-effect-event"
 import { useLocalStorageState } from "~/helpers/use-local-storage-state"
@@ -108,6 +109,12 @@ function RoomPageContent({
 
     if (event.type === "queue-advance" && event.queue === queue.id) {
       setCurrentItemId(event.item.id)
+      if (!document.hasFocus()) {
+        void showNotification({
+          title: "Now playing",
+          body: `${event.item.track.metadata.artist} - ${event.item.track.metadata.title}`,
+        })
+      }
     }
 
     if (event.type === "queue-update" && event.id === queue.id) {
