@@ -17,7 +17,11 @@ export default function RoomQueuePage() {
         <AddSongForm roomId={roomId} />
       </div>
       {items.length > 0 ? (
-        <QueueItemList items={items} />
+        <QueueItemList
+          items={items}
+          currentItemId={current?.id}
+          submitters={queue.submitters}
+        />
       ) : (
         <p>The queue is empty.</p>
       )}
