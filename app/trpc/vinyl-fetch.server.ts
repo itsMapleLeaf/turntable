@@ -43,7 +43,9 @@ export function createVinylApi(token: string | undefined) {
     if (!response.ok) {
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
-        message: "Failed to fetch from vinyl API",
+        message: await response
+          .text()
+          .catch(() => "Failed to fetch from vinyl API"),
       })
     }
 
@@ -77,6 +79,7 @@ export function createVinylApi(token: string | undefined) {
   }
 
   return {
+    apiUrl: (endpoint: string) => new URL(endpoint, vinylApiUrl),
     vinylFetch,
     vinylFetchJson,
     async get(endpoint: string) {

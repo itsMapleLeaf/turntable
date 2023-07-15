@@ -1,12 +1,11 @@
-import { defer, type LoaderArgs } from "@remix-run/node"
-import { Await, NavLink, Outlet, useLoaderData } from "@remix-run/react"
-import { $path } from "remix-routes"
+import { NavLink, Outlet, useParams } from "@remix-run/react"
+import { $params, $path } from "remix-routes"
+import { AuthGuard } from "~/components/auth-guard"
 import { Player } from "~/components/player"
+import { QueryResult } from "~/components/query-result"
 import { Spinner } from "~/components/spinner"
-import { vinylApi } from "~/data/vinyl-api.server"
-import { getSessionToken } from "~/data/vinyl-session.server"
 import { type Room } from "~/data/vinyl-types"
-import { raise } from "~/helpers/errors"
+import { trpc } from "~/trpc/client"
 import { NowPlaying } from "../components/now-playing"
 import { ProgressBar } from "../components/progress-bar"
 import { RoomMembers } from "../components/room-members"
@@ -15,50 +14,26 @@ import {
   useRoomConnected,
 } from "../components/room-state-context"
 
-export function loader({ request, params }: LoaderArgs) {
-  const roomId = params.roomId ?? raise("roomId not defined")
-  const api = vinylApi(request)
-
-  async function loadData() {
-    const token = await getSessionToken(request)
-    if (!token) return null
-
-    const [room, queue] = await Promise.all([
-      api.getRoom(roomId),
-      api.getRoomQueue(roomId),
-    ])
-
-    return {
-      room,
-      queue,
-      streamUrl: api.getRoomStreamUrl(roomId, token).href,
-      socketUrl: api.getGatewayUrl(token).href,
-    }
-  }
-
-  return defer({
-    data: loadData(),
-  })
-}
-
 export default function RoomPage() {
-  const { data } = useLoaderData<typeof loader>()
+  const { roomId } = $params("/rooms/:roomId", useParams())
+  const roomQuery = trpc.rooms.get.useQuery({ id: roomId })
   return (
-    <Await resolve={data} errorElement={<p>Failed to load room data</p>}>
-      {(data) =>
-        data ? (
+    <AuthGuard>
+      <QueryResult
+        query={roomQuery}
+        loadingText="Loading room..."
+        errorPrefix="Failed to load room"
+        render={(room) => (
           <RoomStateProvider
-            room={data.room}
-            queue={data.queue}
-            socketUrl={data.socketUrl}
+            room={room}
+            queue={room.queue}
+            socketUrl={room.eventsUrl}
           >
-            <RoomPageContent room={data.room} streamUrl={data.streamUrl} />
+            <RoomPageContent room={room} streamUrl={room.streamUrl} />
           </RoomStateProvider>
-        ) : (
-          <p>Not logged in</p>
-        )
-      }
-    </Await>
+        )}
+      />
+    </AuthGuard>
   )
 }
 

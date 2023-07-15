@@ -10,6 +10,7 @@ export async function createContext({
   return {
     req,
     resHeaders,
+    session,
     api: createVinylApi(session?.token),
   }
 }

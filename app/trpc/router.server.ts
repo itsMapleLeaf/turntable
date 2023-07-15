@@ -1,6 +1,6 @@
 import { TRPCError, initTRPC } from "@trpc/server"
 import { z } from "zod"
-import { roomSchema, userSchema } from "~/data/vinyl-types"
+import { queueSchema, roomSchema, userSchema } from "~/data/vinyl-types"
 import { type Context } from "./context.server"
 import { createSession, destroySession } from "./session.server"
 
@@ -65,6 +65,43 @@ export const appRouter = t.router({
   rooms: t.router({
     list: t.procedure.query(async (args) => {
       return z.array(roomSchema).parse(await args.ctx.api.get("rooms"))
+    }),
+
+    get: t.procedure.input(z.object({ id: z.string() })).query(async (args) => {
+      if (!args.ctx.session) {
+        throw new TRPCError({
+          code: "UNAUTHORIZED",
+          message: "You must be logged in",
+        })
+      }
+
+      const [room, queue] = await Promise.all([
+        args.ctx.api.get(`rooms/${args.input.id}`),
+        args.ctx.api.get(`rooms/${args.input.id}/queue`),
+      ])
+
+      return {
+        ...roomSchema.parse(room),
+        queue: queueSchema.parse(queue),
+        streamUrl: args.ctx.api.apiUrl(
+          `rooms/${args.input.id}/stream?token=${args.ctx.session.token}`,
+        ).href,
+        eventsUrl: args.ctx.api.apiUrl(`events?token=${args.ctx.session.token}`)
+          .href,
+      }
+    }),
+
+    queue: t.router({
+      add: t.procedure
+        .input(z.object({ roomId: z.string(), url: z.string() }))
+        .mutation(async (args) => {
+          await args.ctx.api.vinylFetch({
+            method: "POST",
+            endpoint: `rooms/${args.input.roomId}/queue`,
+            headers: { "Content-Type": "text/plain" },
+            body: args.input.url,
+          })
+        }),
     }),
   }),
 })
