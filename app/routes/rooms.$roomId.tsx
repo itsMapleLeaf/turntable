@@ -102,6 +102,21 @@ function RoomPageContent({
     useMemo(() => z.number(), []),
   )
 
+  useEffect(() => {
+    const { metadata } = currentItem?.track ?? {}
+    if (metadata) {
+      document.title = `${metadata.artist} - ${metadata.title} | Turntable`
+      navigator.mediaSession.metadata = new MediaMetadata({
+        title: metadata.title,
+        artist: metadata.artist,
+        ...(metadata.artwork && { artwork: [{ src: metadata.artwork }] }),
+      })
+    } else {
+      document.title = `Nothing Playing | Turntable`
+      navigator.mediaSession.metadata = null
+    }
+  }, [currentItem?.track])
+
   const handleLiveEvent = useEffectEvent((event: VinylEvent) => {
     if (event.type === "player-time" && event.room === `room:${room.id}`) {
       setProgressSeconds(event.seconds)
