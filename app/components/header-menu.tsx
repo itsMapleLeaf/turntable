@@ -1,7 +1,9 @@
 import { LucideLogOut, LucideMenu } from "lucide-react"
-import { Menu, MenuButton, MenuItemLink, MenuPanel } from "./menu"
+import { trpc } from "~/trpc/client"
+import { Menu, MenuButton, MenuItemButton, MenuPanel } from "./menu"
 
 export function HeaderMenu() {
+  const mutation = trpc.auth.logout.useMutation()
   return (
     <Menu>
       <MenuButton>
@@ -9,11 +11,10 @@ export function HeaderMenu() {
         <span className="sr-only">Menu</span>
       </MenuButton>
       <MenuPanel>
-        <MenuItemLink
-          to="/sign-out"
-          className="link flex flex-row items-center gap-2 px-3 py-2"
+        <MenuItemButton
           label="Sign Out"
           icon={LucideLogOut}
+          onClick={() => mutation.mutate()}
         />
       </MenuPanel>
     </Menu>

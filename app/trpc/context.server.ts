@@ -1,12 +1,17 @@
-import { type inferAsyncReturnType } from "@trpc/server"
 import { type FetchCreateContextFnOptions } from "@trpc/server/adapters/fetch"
+import { getSession } from "./session.server"
+import { createVinylApi } from "./vinyl-fetch.server"
 
-export function createContext({
+export async function createContext({
   req,
   resHeaders,
 }: FetchCreateContextFnOptions) {
-  const user = { name: req.headers.get("username") ?? "anonymous" }
-  return { req, resHeaders, user }
+  const session = await getSession(req.headers)
+  return {
+    req,
+    resHeaders,
+    api: createVinylApi(session?.token),
+  }
 }
 
-export type Context = inferAsyncReturnType<typeof createContext>
+export type Context = Awaited<ReturnType<typeof createContext>>

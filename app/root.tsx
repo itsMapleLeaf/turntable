@@ -1,39 +1,10 @@
-import {
-  defer,
-  json,
-  redirect,
-  type ActionArgs,
-  type LinksFunction,
-  type LoaderArgs,
-  type V2_MetaFunction,
-} from "@remix-run/node"
-import {
-  Await,
-  Links,
-  LiveReload,
-  Meta,
-  NavLink,
-  Outlet,
-  Scripts,
-  useActionData,
-  useLoaderData,
-  useSearchParams,
-} from "@remix-run/react"
-import { LogIn, UserPlus } from "lucide-react"
-import { Suspense } from "react"
-import { z } from "zod"
-import { zfd } from "zod-form-data"
-import { Label } from "~/components/label"
+import { type LinksFunction, type V2_MetaFunction } from "@remix-run/node"
+import { Links, LiveReload, Meta, Outlet, Scripts } from "@remix-run/react"
+import { type ReactNode } from "react"
 import background from "./assets/background.jpg"
 import favicon from "./assets/favicon.png"
-import { Button } from "./components/button"
-import { FormLayout } from "./components/form-layout"
+import { AuthForms } from "./components/auth-forms"
 import { Header } from "./components/header"
-import { Spinner } from "./components/spinner"
-import { VinylApiError, vinylApi } from "./data/vinyl-api.server"
-import { createSession } from "./data/vinyl-session.server"
-import { raise, toError } from "./helpers/errors"
-import { usePendingSubmit } from "./helpers/use-pending-submit"
 import style from "./style.css"
 import { TrpcProvider, trpc } from "./trpc/client"
 
@@ -44,69 +15,6 @@ export const links: LinksFunction = () => [
   { rel: "icon", href: favicon },
 ]
 
-export function loader({ request }: LoaderArgs) {
-  const api = vinylApi(request)
-  return defer({
-    user: api.getUser().catch((error) => {
-      const isUnauthorized =
-        error instanceof VinylApiError && error.status === 401
-      if (!isUnauthorized) {
-        console.error("Failed to get user:", error)
-      }
-      return null
-    }),
-  })
-}
-
-export async function action({ request }: ActionArgs) {
-  const schema = z.union([
-    zfd.formData({
-      action: zfd.text(z.literal("login")),
-      username: zfd.text(),
-      password: zfd.text(),
-    }),
-    zfd.formData({
-      action: zfd.text(z.literal("register")),
-      username: zfd.text(),
-      password: zfd.text(),
-      passwordRepeat: zfd.text(),
-    }),
-  ])
-
-  try {
-    const form = await schema
-      .parseAsync(await request.formData())
-      .catch(() => raise("Invalid form data"))
-
-    if (form.action === "login") {
-      const api = vinylApi(request)
-      const result = await api.login(form)
-      return redirect(request.headers.get("referer") ?? "/", {
-        headers: { "Set-Cookie": await createSession(result.token) },
-      })
-    }
-
-    if (form.action === "register") {
-      if (form.password !== form.passwordRepeat) {
-        return json({ error: "Passwords do not match" }, 400)
-      }
-
-      const api = vinylApi(request)
-      const result = await api.register(form)
-      return redirect(request.headers.get("referer") ?? "/", {
-        headers: { "Set-Cookie": await createSession(result.token) },
-      })
-    }
-
-    throw new Error("Invalid action")
-  } catch (error) {
-    if (error instanceof VinylApiError) {
-      return json({ error: error.message }, error.status)
-    }
-    return json({ error: toError(error).message }, 500)
-  }
-}
-
 export default function Root() {
   return (
     <TrpcProvider>
@@ -116,10 +24,6 @@ export default function Root() {
 }
 
 function Document() {
-  const { user } = useLoaderData<typeof loader>()
-
-  console.log(trpc.hello.useQuery())
-
   return (
     <html
       lang="en"
@@ -148,12 +52,10 @@ function Document() {
         style={{ backgroundImage: `url(${background})` }}
       >
         <div className="relative isolate flex min-h-screen flex-col bg-black/50">
-          <Header user={user} />
-          <Suspense fallback="Loading...">
-            <Await resolve={user}>
-              {(user) => (user ? <Outlet /> : <AuthForms />)}
-            </Await>
-          </Suspense>
+          <Header />
+          <AuthGuard>
+            <Outlet />
+          </AuthGuard>
         </div>
         <Scripts />
         <LiveReload />
@@ -162,107 +64,9 @@ function Document() {
   )
 }
 
-function AuthForms() {
-  const [searchParams] = useSearchParams()
-  const view = searchParams.get("auth-view") ?? "login"
-  return view === "login" ? <SignInForm /> : <RegisterForm />
-}
-
-function SignInForm() {
-  const pending = usePendingSubmit()
-  const { error } = useActionData<typeof action>() ?? {}
-
-  return (
-    <FormLayout title="Sign In" error={error}>
-      <Label text="Username">
-        <input
-          name="username"
-          type="text"
-          placeholder="awesomeuser"
-          className="input"
-          required
-        />
-      </Label>
-      <Label text="Password">
-        <input
-          name="password"
-          type="password"
-          placeholder="•••••••"
-          className="input"
-          required
-        />
-      </Label>
-      <Button
-        pending={pending}
-        label="Sign in"
-        pendingLabel="Signing in..."
-        iconElement={<LogIn />}
-        element={<button type="submit" name="action" value="login" />}
-      />
-      <p>
-        Don't have an account?{" "}
-        <NavLink
-          to="?auth-view=register"
-          replace
-          className="link inline-flex items-center gap-2 underline"
-        >
-          {(state) => <>Create one {state.isPending && <Spinner size={4} />}</>}
-        </NavLink>
-      </p>
-    </FormLayout>
-  )
-}
-
-function RegisterForm() {
-  const pending = usePendingSubmit()
-  const { error } = useActionData<typeof action>() ?? {}
-
-  return (
-    <FormLayout title="Register" error={error}>
-      <Label text="Username">
-        <input
-          name="username"
-          type="text"
-          placeholder="awesomeuser"
-          className="input"
-          required
-        />
-      </Label>
-      <Label text="Password">
-        <input
-          name="password"
-          type="password"
-          placeholder="•••••••"
-          className="input"
-          required
-        />
-      </Label>
-      <Label text="Confirm Password">
-        <input
-          name="passwordRepeat"
-          type="password"
-          placeholder="•••••••"
-          className="input"
-          required
-        />
-      </Label>
-      <Button
-        pending={pending}
-        label="Register"
-        pendingLabel="Registering..."
-        iconElement={<UserPlus />}
-        element={<button type="submit" name="action" value="register" />}
-      />
-      <p>
-        Already have an account?{" "}
-        <NavLink
-          to="?auth-view=login"
-          replace
-          className="link inline-flex items-center gap-2 underline"
-        >
-          {(state) => <>Sign in {state.isPending && <Spinner size={4} />}</>}
-        </NavLink>
-      </p>
-    </FormLayout>
-  )
+function AuthGuard({ children }: { children: ReactNode }) {
+  const userQuery = trpc.auth.user.useQuery()
+  if (userQuery.isLoading) return <p>Loading...</p>
+  if (!userQuery.data) return <AuthForms />
+  return children
 }
