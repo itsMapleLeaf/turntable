@@ -1,17 +1,4 @@
-import { clamp } from "~/helpers/math"
-import {
-  useCurrentRoomQueueItem,
-  useRoomSongProgress,
-} from "./room-state-context"
-
-export function ProgressBar() {
-  const item = useCurrentRoomQueueItem()
-  const progressSeconds = useRoomSongProgress()
-  const progress = clamp(
-    item ? progressSeconds / item.track.metadata.duration : 0,
-    0,
-    1,
-  )
+export function ProgressBar({ progress }: { progress: number }) {
   return (
     <div className="h-px w-full bg-white/25">
       <svg className="h-8 w-full -translate-y-1/2">

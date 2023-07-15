@@ -42,3 +42,44 @@ export const roomSchema = z.object({
   connections: z.array(userSchema),
 })
 export type Room = z.infer<typeof roomSchema>
+
+export const vinylEventSchema = z.union([
+  z.object({
+    type: z.literal("user-entered-room"),
+    user: z.object({
+      id: z.string(),
+      username: z.string(),
+      display_name: z.string(),
+    }),
+    room: z.string(),
+  }),
+  z.object({
+    type: z.literal("user-left-room"),
+    user: z.string(),
+    room: z.string(),
+  }),
+  z.object({
+    type: z.literal("queue-update"),
+    id: z.number(),
+    currentItem: z.number(),
+    items: z.array(queueItemSchema),
+    submitters: z.array(userSchema),
+  }),
+  z.object({
+    type: z.literal("queue-advance"),
+    queue: z.number(),
+    item: queueItemSchema,
+  }),
+  z.object({
+    type: z.literal("player-time"),
+    room: z.string(),
+    seconds: z.number(),
+    total_seconds: z.number(),
+  }),
+  z.object({
+    type: z.literal("track-activation-error"),
+    queue: z.number(),
+    track: z.number(),
+  }),
+])
+export type VinylEvent = z.output<typeof vinylEventSchema>

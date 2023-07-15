@@ -41,6 +41,7 @@
     "react-dom": "^18.2.0",
     "react-virtuoso": "^4.3.11",
     "scraper-edge": "^1.1.0",
+    "tailwind-merge": "^1.13.2",
     "zod": "^3.21.4",
     "zod-form-data": "^2.0.1"
   },
