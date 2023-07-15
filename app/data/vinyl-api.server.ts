@@ -1,7 +1,7 @@
 import { z } from "zod"
 import { raise } from "~/helpers/errors"
-import { getSessionToken } from "./vinyl-session"
-import { queueSchema, type Room, roomSchema, userSchema } from "./vinyl-types"
+import { getSessionToken } from "./vinyl-session.server"
+import { queueSchema, roomSchema, userSchema, type Room } from "./vinyl-types"
 
 const apiUrl = new URL(
   "/v1/",
