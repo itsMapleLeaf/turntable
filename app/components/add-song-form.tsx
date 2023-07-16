@@ -4,6 +4,7 @@ import {
   LucideLink,
   LucideListMusic,
   LucidePlay,
+  LucideSquare,
   LucideYoutube,
 } from "lucide-react"
 import { useMemo, useState, type ReactNode } from "react"
@@ -18,7 +19,7 @@ import { mod } from "~/helpers/math"
 import { useLocalStorageState } from "~/helpers/use-local-storage-state"
 import { trpc } from "~/trpc/client"
 import { type AppRouterOutput } from "~/trpc/router.server"
-import { useYouTubePreview } from "./youtube-preview-dialog"
+import { useYouTubePreview } from "./youtube-preview"
 
 const submitSources = [
   { id: "youtube", name: "YouTube", icon: LucideYoutube },
@@ -387,13 +388,23 @@ function SearchResultItem({ roomId, video }: { roomId: string; video: Video }) {
 
 function PreviewButton({ videoId }: { videoId: string }) {
   const youTubePreview = useYouTubePreview()
-  return (
+  return youTubePreview.playing && youTubePreview.videoId === videoId ? (
     <button
       type="button"
       className="active-press flex items-center justify-center px-3 transition-colors hover:text-accent-300"
-      onClick={() => youTubePreview.show(videoId)}
+      onClick={() => youTubePreview.stop()}
     >
-      <LucidePlay /> <span className="sr-only">Preview</span>
+      <LucideSquare />
+      <span className="sr-only">Stop preview</span>
+    </button>
+  ) : (
+    <button
+      type="button"
+      className="active-press flex items-center justify-center px-3 transition-colors hover:text-accent-300"
+      onClick={() => youTubePreview.play(videoId)}
+    >
+      <LucidePlay />
+      <span className="sr-only">Preview</span>
     </button>
   )
 }

@@ -10,9 +10,10 @@ import { ProgressBar } from "~/components/progress-bar"
 import { QueryResult } from "~/components/query-result"
 import { Spinner } from "~/components/spinner"
 import {
+  YouTubePreview,
   YouTubePreviewProvider,
   useYouTubePreview,
-} from "~/components/youtube-preview-dialog"
+} from "~/components/youtube-preview"
 import {
   vinylEventSchema,
   type Queue,
@@ -185,8 +186,8 @@ function RoomPageContent({ room }: { room: AppRouterOutput["rooms"]["get"] }) {
   }, [connected, muted, room.streamUrl])
 
   useEffect(() => {
-    getAudioElement().volume = youTubePreview.open ? 0 : volume ** 2
-  }, [volume, youTubePreview.open])
+    getAudioElement().volume = youTubePreview.playing ? 0 : volume ** 2
+  }, [volume, youTubePreview.playing])
 
   useEffect(() => {
     return () => getAudioElement().pause()
@@ -280,6 +281,7 @@ function RoomPageContent({ room }: { room: AppRouterOutput["rooms"]["get"] }) {
           )}
         </div>
       </footer>
+      <YouTubePreview volume={volume} />
     </>
   )
 }

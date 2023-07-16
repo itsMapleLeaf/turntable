@@ -47,6 +47,7 @@
     "scraper-edge": "^1.1.0",
     "spotify-uri": "^3.0.4",
     "tailwind-merge": "^1.13.2",
+    "youtube-player": "^5.6.0",
     "zod": "^3.21.4",
     "zod-form-data": "^2.0.1"
   },
@@ -59,6 +60,7 @@
     "@types/node": "^20.4.1",
     "@types/react": "^18.2.14",
     "@types/react-dom": "^18.2.6",
+    "@types/youtube-player": "^5.5.7",
     "dotenv-cli": "^7.2.1",
     "eslint": "^8.44.0",
     "prettier": "^3.0.0",
