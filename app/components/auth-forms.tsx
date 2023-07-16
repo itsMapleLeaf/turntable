@@ -1,3 +1,4 @@
+import { useQueryClient } from "@tanstack/react-query"
 import { LogIn, UserPlus } from "lucide-react"
 import { useState } from "react"
 import { Button } from "~/components/button"
@@ -15,7 +16,10 @@ export function AuthForms() {
 }
 
 export function SignInForm({ onRegister }: { onRegister: () => void }) {
-  const mutation = trpc.auth.login.useMutation()
+  const client = useQueryClient()
+  const mutation = trpc.auth.login.useMutation({
+    onSuccess: () => client.invalidateQueries(),
+  })
   return (
     <FormLayout
       title="Sign In"
@@ -68,7 +72,10 @@ export function SignInForm({ onRegister }: { onRegister: () => void }) {
 }
 
 export function RegisterForm({ onLogin }: { onLogin: () => void }) {
-  const mutation = trpc.auth.register.useMutation()
+  const client = useQueryClient()
+  const mutation = trpc.auth.register.useMutation({
+    onSuccess: () => client.invalidateQueries(),
+  })
   return (
     <FormLayout
       title="Register"
