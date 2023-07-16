@@ -10,6 +10,10 @@ import { ProgressBar } from "~/components/progress-bar"
 import { QueryResult } from "~/components/query-result"
 import { Spinner } from "~/components/spinner"
 import {
+  YouTubePreviewProvider,
+  useYouTubePreview,
+} from "~/components/youtube-preview-dialog"
+import {
   vinylEventSchema,
   type Queue,
   type QueueItem,
@@ -28,12 +32,14 @@ export default function RoomPage() {
   const roomQuery = trpc.rooms.get.useQuery({ id: roomId })
   return (
     <AuthGuard>
-      <QueryResult
-        query={roomQuery}
-        loadingText="Loading room..."
-        errorPrefix="Failed to load room"
-        render={(room) => <RoomPageContent room={room} />}
-      />
+      <YouTubePreviewProvider>
+        <QueryResult
+          query={roomQuery}
+          loadingText="Loading room..."
+          errorPrefix="Failed to load room"
+          render={(room) => <RoomPageContent room={room} />}
+        />
+      </YouTubePreviewProvider>
     </AuthGuard>
   )
 }
@@ -58,6 +64,8 @@ function RoomPageContent({ room }: { room: AppRouterOutput["rooms"]["get"] }) {
 
   const [audioPlayFailed, setAudioPlayFailed] = useState(false)
   const [audioStalled, setAudioStalled] = useState(false)
+
+  const youTubePreview = useYouTubePreview()
 
   const context = trpc.useContext()
 
@@ -145,7 +153,7 @@ function RoomPageContent({ room }: { room: AppRouterOutput["rooms"]["get"] }) {
 
   useEffect(() => {
     const audio = getAudioElement()
-    if (connected && !muted) {
+    if (connected && !muted && !youTubePreview.open) {
       let cancelled = false
 
       audio.src = `${room.streamUrl}&t=${Date.now()}`
@@ -169,7 +177,7 @@ function RoomPageContent({ room }: { room: AppRouterOutput["rooms"]["get"] }) {
       audio.pause()
       setAudioPlayFailed(false)
     }
-  }, [connected, muted, room.streamUrl])
+  }, [connected, muted, room.streamUrl, youTubePreview.open])
 
   useEffect(() => {
     getAudioElement().volume = volume ** 2

@@ -6,6 +6,7 @@ import { Menu, MenuButton, MenuItemButton, MenuPanel } from "~/components/menu"
 import { Spinner } from "~/components/spinner"
 import { mod } from "~/helpers/math"
 import { trpc } from "~/trpc/client"
+import { useYouTubePreview } from "./youtube-preview-dialog"
 
 const submitSources = [
   { name: "YouTube", icon: LucideYoutube },
@@ -175,10 +176,10 @@ function SearchResultItem({ roomId, video }: { roomId: string; video: Video }) {
   const mutation = trpc.rooms.submit.useMutation()
 
   return (
-    <>
+    <div className="relative flex">
       <button
         type="button"
-        className="button flex w-full items-center gap-3 rounded-none border-none bg-transparent text-left ring-inset data-[pending]:opacity-75"
+        className="button relative flex w-full flex-1 items-center gap-3 rounded-none border-none bg-transparent text-left ring-inset data-[pending]:opacity-75"
         data-pending={mutation.isLoading || undefined}
         data-focus-target
         data-search-result-item
@@ -207,6 +208,20 @@ function SearchResultItem({ roomId, video }: { roomId: string; video: Video }) {
           <Spinner />
         </div>
       </button>
-    </>
+      <PreviewButton videoId={video.id} />
+    </div>
+  )
+}
+
+function PreviewButton({ videoId }: { videoId: string }) {
+  const youTubePreview = useYouTubePreview()
+  return (
+    <button
+      type="button"
+      className="active-press flex items-center justify-center px-3 transition-colors hover:text-accent-300"
+      onClick={() => youTubePreview.show(videoId)}
+    >
+      <LucidePlay /> <span className="sr-only">Preview</span>
+    </button>
   )
 }
