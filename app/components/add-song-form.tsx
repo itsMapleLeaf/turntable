@@ -1,6 +1,15 @@
-import { LucideLink, LucidePlay, LucideYoutube } from "lucide-react"
+import {
+  LucideChevronLeft,
+  LucideChevronRight,
+  LucideLink,
+  LucideListMusic,
+  LucidePlay,
+  LucideYoutube,
+} from "lucide-react"
 import { useMemo, useState, type ReactNode } from "react"
+import { Virtuoso } from "react-virtuoso"
 import { type Video } from "scraper-edge"
+import * as spotifyUri from "spotify-uri"
 import { z } from "zod"
 import { Button } from "~/components/button"
 import { Menu, MenuButton, MenuItemButton, MenuPanel } from "~/components/menu"
@@ -8,10 +17,12 @@ import { Spinner } from "~/components/spinner"
 import { mod } from "~/helpers/math"
 import { useLocalStorageState } from "~/helpers/use-local-storage-state"
 import { trpc } from "~/trpc/client"
+import { type AppRouterOutput } from "~/trpc/router.server"
 import { useYouTubePreview } from "./youtube-preview-dialog"
 
 const submitSources = [
   { id: "youtube", name: "YouTube", icon: LucideYoutube },
+  { id: "spotify-playlist", name: "Spotify Playlist", icon: LucideListMusic },
   { id: "direct", name: "Direct URL", icon: LucideLink },
 ] as const
 
@@ -48,10 +59,13 @@ export function AddSongForm({ roomId }: { roomId: string }) {
 
   return submitSource.id === "youtube" ? (
     <YouTubeSearchSubmitter roomId={roomId} sourceMenu={sourceMenu} />
+  ) : submitSource.id === "spotify-playlist" ? (
+    <SpotifyPlaylistSubmitter roomId={roomId} sourceMenu={sourceMenu} />
   ) : (
     <DirectUrlSubmitter roomId={roomId} sourceMenu={sourceMenu} />
   )
 }
+
 function DirectUrlSubmitter({
   roomId,
   sourceMenu,
@@ -91,6 +105,7 @@ function DirectUrlSubmitter({
     </form>
   )
 }
+
 function YouTubeSearchSubmitter({
   roomId,
   sourceMenu,
@@ -174,6 +189,157 @@ function YouTubeSearchSubmitter({
           ))}
         </div>
       )}
+    </div>
+  )
+}
+
+function SpotifyPlaylistSubmitter({
+  roomId,
+  sourceMenu,
+}: {
+  roomId: string
+  sourceMenu: ReactNode
+}) {
+  const [input, setInput] = useState("")
+
+  let parsedInput
+  try {
+    parsedInput = spotifyUri.parse(input)
+  } catch {
+    /* empty */
+  }
+
+  const pending = false
+
+  return (
+    <div className="divide-y divide-white/10">
+      <div className="flex gap-2 p-3">
+        <div className="relative flex flex-1">
+          <input
+            type="search"
+            name="url"
+            placeholder="Paste a Spotify playlist URL"
+            className="input flex-1"
+            required
+            data-focus-target
+            onChange={(event) => setInput(event.target.value)}
+          />
+          <Spinner
+            className={`pointer-events-none absolute right-3 self-center transition-opacity ${
+              pending ? "opacity-100" : "opacity-0"
+            }`}
+          />
+        </div>
+        {sourceMenu}
+      </div>
+      {input.trim().length === 0 ? null : spotifyUri.Playlist.is(
+          parsedInput,
+        ) ? (
+        <SpotifyPlaylistResults roomId={roomId} playlistId={parsedInput.id} />
+      ) : (
+        <p className="p-3">Only spotify playlist URLs are supported.</p>
+      )}
+    </div>
+  )
+}
+
+function SpotifyPlaylistResults({
+  roomId,
+  playlistId,
+}: {
+  roomId: string
+  playlistId: string
+}) {
+  const query = trpc.spotify.youtubeVideosFromPlaylist.useInfiniteQuery(
+    { playlistId },
+    { getNextPageParam: (lastPage) => lastPage.nextCursor },
+  )
+
+  return query.isLoading ? (
+    <p className="flex items-center gap-2 p-3">
+      <Spinner /> Loading results...
+    </p>
+  ) : query.isError ? (
+    <p className="p-3">Failed to fetch videos: {query.error.message}</p>
+  ) : (
+    <div className="h-96">
+      <Virtuoso
+        data={query.data.pages.flatMap((page) => page.results)}
+        itemContent={(index, result) => (
+          <div className={index === 0 ? "" : "border-t border-white/10"}>
+            <SpotifySearchResult roomId={roomId} result={result} />
+          </div>
+        )}
+        components={{
+          Footer: () =>
+            query.hasNextPage ? (
+              <button
+                type="button"
+                className="button w-full"
+                onClick={() => {
+                  void query.fetchNextPage()
+                }}
+                disabled={query.isFetchingNextPage}
+              >
+                {query.isFetchingNextPage ? <Spinner /> : "Load more"}
+              </button>
+            ) : null,
+        }}
+      />
+    </div>
+  )
+}
+
+function SpotifySearchResult({
+  roomId,
+  result,
+}: {
+  roomId: string
+  result: AppRouterOutput["spotify"]["youtubeVideosFromPlaylist"]["results"][number]
+}) {
+  const [videoIndex, setVideoIndex] = useState(0)
+  const currentVideo = result.videos[videoIndex]
+
+  if (!currentVideo) {
+    return (
+      <p className="p-3">No videos found for "{result.item.track.name}".</p>
+    )
+  }
+
+  return (
+    <div>
+      <SearchResultItem roomId={roomId} video={currentVideo} />
+      <div className="flex items-center bg-black/50 px-2 py-1">
+        <p className="flex-1 text-sm opacity-75">
+          {result.item.track.name} by{" "}
+          {new Intl.ListFormat(undefined).format(
+            result.item.track.artists.map((artist) => artist.name),
+          )}
+        </p>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            className="button border-none p-1"
+            onClick={() =>
+              setVideoIndex(mod(videoIndex - 1, result.videos.length))
+            }
+          >
+            <LucideChevronLeft /> <span className="sr-only">Previous</span>
+          </button>
+          <p className="text-sm">
+            {videoIndex + 1} / {result.videos.length}
+          </p>
+          <button
+            type="button"
+            className="button border-none p-1"
+            onClick={() =>
+              setVideoIndex(mod(videoIndex + 1, result.videos.length))
+            }
+          >
+            <LucideChevronRight /> <span className="sr-only">Next</span>
+          </button>
+        </div>
+      </div>
     </div>
   )
 }

@@ -13,7 +13,7 @@ export default function RoomQueuePage() {
   return (
     <section className="grid gap-4">
       <h2 className="sr-only">Queue</h2>
-      <div className="panel">
+      <div className="panel min-w-0">
         <AddSongForm roomId={roomId} />
       </div>
       {items.length > 0 ? (

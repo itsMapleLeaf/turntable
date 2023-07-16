@@ -10,6 +10,11 @@ export default {
     v2_headers: true,
     v2_dev: true,
   },
-  serverDependenciesToBundle: ["pretty-ms", "parse-ms"],
+  serverDependenciesToBundle: [
+    "pretty-ms",
+    "parse-ms",
+    "p-limit",
+    "yocto-queue",
+  ],
   watchPaths: ["./tailwind.config.ts"],
 }

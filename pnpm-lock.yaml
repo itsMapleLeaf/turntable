@@ -34,6 +34,9 @@ dependencies:
   '@remix-run/react':
     specifier: ^1.18.1
     version: 1.18.1(react-dom@18.2.0)(react@18.2.0)
+  '@spotify/web-api-ts-sdk':
+    specifier: ^1.0.0
+    version: 1.0.0
   '@tanstack/react-query':
     specifier: ^4.29.23
     version: 4.29.23(react-dom@18.2.0)(react@18.2.0)
@@ -64,6 +67,9 @@ dependencies:
   lucide-react:
     specifier: ^0.259.0
     version: 0.259.0(react@18.2.0)
+  p-limit:
+    specifier: ^4.0.0
+    version: 4.0.0
   pretty-ms:
     specifier: ^8.0.0
     version: 8.0.0
@@ -79,6 +85,9 @@ dependencies:
   scraper-edge:
     specifier: ^1.1.0
     version: 1.1.0
+  spotify-uri:
+    specifier: ^3.0.4
+    version: 3.0.4
   tailwind-merge:
     specifier: ^1.13.2
     version: 1.13.2
@@ -2834,6 +2843,10 @@ packages:
     resolution: {integrity: sha512-t09vSN3MdfsyCHoFcTRCH/iUtG7OJ0CsjzB8cjAmKc/va/kIgeDI/TxsigdncE/4be734m0cvIYwNaV4i2XqAw==}
     engines: {node: '>=10'}
     dev: true
+
+  /@spotify/web-api-ts-sdk@1.0.0:
+    resolution: {integrity: sha512-mFvCSdoprHBK0itg0g1Tl2/0Wcm9huIOpfU8QkPW5tvbaaMzQsNHFvPp2Qx+xw5miRFWYkF+G8Q0cNYYmCB1oA==}
+    dev: false
 
   /@szmarczak/http-timer@4.0.6:
     resolution: {integrity: sha512-4BAffykYOgO+5nzBWYwE3W90sBgLJoUPRWWcL8wlyiM8IB8ipJz3UMJ9KXQd1RKQXpKp8Tutn80HZtWsu2u76w==}
@@ -7064,6 +7077,13 @@ packages:
       yocto-queue: 0.1.0
     dev: true
 
+  /p-limit@4.0.0:
+    resolution: {integrity: sha512-5b0R4txpzjPWVw/cXXUResoD4hb6U/x9BH08L7nw+GN1sezDzPdxeRvpc9c433fZhBan/wusjbCsqwqm4EIBIQ==}
+    engines: {node: ^12.20.0 || ^14.13.1 || >=16.0.0}
+    dependencies:
+      yocto-queue: 1.0.0
+    dev: false
+
   /p-locate@4.1.0:
     resolution: {integrity: sha512-R79ZZ/0wAxKGu3oYMlz8jy/kbhsNrS7SKZ7PxEHBgJ5+F2mtFW2fK2cOtBh1cHYkQsbzFV7I+EoRKe6Yt0oK7A==}
     engines: {node: '>=8'}
@@ -8331,6 +8351,11 @@ packages:
     resolution: {integrity: sha512-XkD+zwiqXHikFZm4AX/7JSCXA98U5Db4AFd5XUg/+9UNtnH75+Z9KxtpYiJZx36mUDVOwH83pl7yvCer6ewM3w==}
     dev: true
 
+  /spotify-uri@3.0.4:
+    resolution: {integrity: sha512-wtofZNzMjPXR1KD2/gw8F/7ng1QwxpfFbrVgcRaAh0oSJ6ZGC5ln+IBptIRuti1dYGOxJqEIvDc88ctLvTSWiQ==}
+    engines: {node: '>= 16'}
+    dev: false
+
   /ssri@8.0.1:
     resolution: {integrity: sha512-97qShzy1AiyxvPNIkLWoGua7xoQzzPjQ0HAH4B0rWKo7SZ6USuPcrUiAFrws0UH8RrbWmgq3LMTObhPIHbbBeQ==}
     engines: {node: '>= 8'}
@@ -9252,6 +9277,11 @@ packages:
     resolution: {integrity: sha512-rVksvsnNCdJ/ohGc6xgPwyN8eheCxsiLM8mxuE/t/mOVqJewPuO1miLpTHQiRgTKCLexL4MeAFVagts7HmNZ2Q==}
     engines: {node: '>=10'}
     dev: true
+
+  /yocto-queue@1.0.0:
+    resolution: {integrity: sha512-9bnSc/HEW2uRy67wc+T8UwauLuPJVn28jb+GtJY16iiKWyvmYJRXVT4UamsAEGQfPohgr2q4Tq0sQbQlxTfi1g==}
+    engines: {node: '>=12.20'}
+    dev: false
 
   /zod-form-data@2.0.1(zod@3.21.4):
     resolution: {integrity: sha512-4jcsj3vFyFGINLLHEmehfOPKdcw+HqV65RwsV2IdyLHp9wpvGJRVXWg1yY8sq0ASEbQfTVBRtI7LcDGv3Qpj8g==}
