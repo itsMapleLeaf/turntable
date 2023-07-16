@@ -12,6 +12,7 @@ module.exports = {
     project: require.resolve("./tsconfig.json"),
   },
   rules: {
+    "no-console": ["error", { allow: ["warn", "error", "debug"] }],
     "unicorn/filename-case": "off",
     "unicorn/text-encoding-identifier-case": "off",
     "jsx-a11y/media-has-caption": "off",
