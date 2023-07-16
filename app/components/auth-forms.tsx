@@ -15,7 +15,7 @@ export function AuthForms() {
   )
 }
 
-export function SignInForm({ onRegister }: { onRegister: () => void }) {
+function SignInForm({ onRegister }: { onRegister: () => void }) {
   const client = useQueryClient()
   const mutation = trpc.auth.login.useMutation({
     onSuccess: () => client.invalidateQueries(),
@@ -71,7 +71,7 @@ export function SignInForm({ onRegister }: { onRegister: () => void }) {
   )
 }
 
-export function RegisterForm({ onLogin }: { onLogin: () => void }) {
+function RegisterForm({ onLogin }: { onLogin: () => void }) {
   const client = useQueryClient()
   const mutation = trpc.auth.register.useMutation({
     onSuccess: () => client.invalidateQueries(),
