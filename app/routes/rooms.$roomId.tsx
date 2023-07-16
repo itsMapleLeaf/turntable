@@ -1,16 +1,7 @@
 import { ReconnectingEventSource } from "@jessestolwijk/reconnecting-event-source"
 import { NavLink, Outlet, useParams } from "@remix-run/react"
-import { useQueryClient } from "@tanstack/react-query"
-import { getQueryKey } from "@trpc/react-query"
 import { LucidePlayCircle } from "lucide-react"
-import {
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
-} from "react"
+import { createContext, useContext, useEffect, useMemo, useState } from "react"
 import { $params, $path } from "remix-routes"
 import { z } from "zod"
 import { AuthGuard } from "~/components/auth-guard"
@@ -22,74 +13,36 @@ import {
   vinylEventSchema,
   type Queue,
   type QueueItem,
-  type Room,
   type VinylEvent,
 } from "~/data/vinyl-types"
 import { raise } from "~/helpers/errors"
 import { showNotification } from "~/helpers/notifications"
-import { useAsync } from "~/helpers/use-async"
 import { useEffectEvent } from "~/helpers/use-effect-event"
 import { useLocalStorageState } from "~/helpers/use-local-storage-state"
 import { trpc } from "~/trpc/client"
+import { type AppRouterOutput } from "~/trpc/router.server"
 import { RoomMembers } from "../components/room-members"
 
 export default function RoomPage() {
   const { roomId } = $params("/rooms/:roomId", useParams())
   const roomQuery = trpc.rooms.get.useQuery({ id: roomId })
-  const client = useQueryClient()
-
   return (
     <AuthGuard>
       <QueryResult
         query={roomQuery}
         loadingText="Loading room..."
         errorPrefix="Failed to load room"
-        render={(room) => (
-          <RoomPageContent
-            room={room}
-            queue={room.queue}
-            streamUrl={room.streamUrl}
-            eventsUrl={room.eventsUrl}
-            onRoomChange={(newRoom) => {
-              client.setQueryData(
-                getQueryKey(trpc.rooms.get, { id: roomId }),
-                (data) => ({ ...(data as object), ...newRoom }),
-              )
-            }}
-            onQueueChange={(newQueue) => {
-              client.setQueryData(
-                getQueryKey(trpc.rooms.get, { id: roomId }),
-                (data) => ({ ...(data as object), queue: newQueue }),
-              )
-            }}
-          />
-        )}
+        render={(room) => <RoomPageContent room={room} />}
       />
     </AuthGuard>
   )
 }
 
-function RoomPageContent({
-  room,
-  queue,
-  streamUrl,
-  eventsUrl,
-  onRoomChange,
-  onQueueChange,
-}: {
-  room: Room
-  queue: Queue
-  streamUrl: string
-  eventsUrl: string
-  onRoomChange: (room: Room) => void
-  onQueueChange: (queue: Queue) => void
-}) {
-  const roomId = room.id
-
+function RoomPageContent({ room }: { room: AppRouterOutput["rooms"]["get"] }) {
   const [connected, setConnected] = useState(false)
 
-  const [currentItemId, setCurrentItemId] = useState(queue.currentItem)
-  const currentItem = queue.items.find((item) => item.id === currentItemId)
+  const [currentItemId, setCurrentItemId] = useState(room.queue.currentItem)
+  const currentItem = room.queue.items.find((item) => item.id === currentItemId)
 
   const [progressSeconds, setProgressSeconds] = useState(0)
   const progress = currentItem
@@ -101,6 +54,12 @@ function RoomPageContent({
     0.5,
     useMemo(() => z.number(), []),
   )
+  const muted = volume === 0
+
+  const [audioPlayFailed, setAudioPlayFailed] = useState(false)
+  const [audioStalled, setAudioStalled] = useState(false)
+
+  const context = trpc.useContext()
 
   useEffect(() => {
     const { metadata } = currentItem?.track ?? {}
@@ -118,11 +77,15 @@ function RoomPageContent({
   }, [currentItem?.track])
 
   const handleLiveEvent = useEffectEvent((event: VinylEvent) => {
+    if (event.type !== "player-time") {
+      console.debug("event received", event)
+    }
+
     if (event.type === "player-time" && event.room === `room:${room.id}`) {
       setProgressSeconds(event.seconds)
     }
 
-    if (event.type === "queue-advance" && event.queue === queue.id) {
+    if (event.type === "queue-advance" && event.queue === room.queue.id) {
       setCurrentItemId(event.item.id)
       if (!document.hasFocus()) {
         void showNotification({
@@ -132,11 +95,17 @@ function RoomPageContent({
       }
     }
 
-    if (event.type === "queue-update" && event.id === queue.id) {
-      onQueueChange(event)
+    if (event.type === "queue-update" && event.id === room.queue.id) {
+      context.rooms.get.setData(
+        { id: room.id },
+        { ...room, queue: { ...room.queue, ...event } },
+      )
     }
 
-    if (event.type === "track-activation-error" && event.queue === queue.id) {
+    if (
+      event.type === "track-activation-error" &&
+      event.queue === room.queue.id
+    ) {
       console.warn("failed to activate track", event.track)
       // todo actual error i guess
     }
@@ -145,18 +114,25 @@ function RoomPageContent({
       event.type === "user-entered-room" &&
       event.room === `room:${room.id}`
     ) {
-      onRoomChange({ ...room, connections: [...room.connections, event.user] })
+      context.rooms.get.setData(
+        { id: room.id },
+        { ...room, connections: [...room.connections, event.user] },
+      )
     }
+
     if (event.type === "user-left-room" && event.room === `room:${room.id}`) {
-      onRoomChange({
-        ...room,
-        connections: room.connections.filter((c) => c.id !== event.user),
-      })
+      context.rooms.get.setData(
+        { id: room.id },
+        {
+          ...room,
+          connections: room.connections.filter((c) => c.id !== event.user),
+        },
+      )
     }
   })
 
   useEffect(() => {
-    const source = new ReconnectingEventSource(eventsUrl)
+    const source = new ReconnectingEventSource(room.eventsUrl)
 
     source.onOpen = () => setConnected(true)
     source.onError = () => setConnected(false)
@@ -165,15 +141,35 @@ function RoomPageContent({
       handleLiveEvent(vinylEventSchema.parse(JSON.parse(String(data))))
 
     return () => source.close()
-  }, [eventsUrl, handleLiveEvent])
+  }, [room.eventsUrl, handleLiveEvent])
 
-  const [audioState, playAudio] = useAsync(
-    useCallback(async () => {
-      const audio = getAudioElement()
-      audio.src = `${streamUrl}&t=${Date.now()}`
-      await audio.play()
-    }, [streamUrl]),
-  )
+  useEffect(() => {
+    const audio = getAudioElement()
+    if (connected && !muted) {
+      let cancelled = false
+
+      audio.src = `${room.streamUrl}&t=${Date.now()}`
+      audio.play().then(
+        () => {
+          if (cancelled) return
+          setAudioPlayFailed(false)
+        },
+        (error) => {
+          if (cancelled) return
+          console.warn("failed to play audio", error)
+          setAudioPlayFailed(true)
+        },
+      )
+
+      return () => {
+        cancelled = true
+      }
+    } else {
+      audio.src = ""
+      audio.pause()
+      setAudioPlayFailed(false)
+    }
+  }, [connected, muted, room.streamUrl])
 
   useEffect(() => {
     getAudioElement().volume = volume ** 2
@@ -183,7 +179,6 @@ function RoomPageContent({
     return () => getAudioElement().pause()
   }, [])
 
-  const [audioStalled, setAudioStalled] = useState(false)
   useEffect(() => {
     const audio = getAudioElement()
     const handleStalled = () => setAudioStalled(true)
@@ -198,7 +193,7 @@ function RoomPageContent({
     }
   }, [])
 
-  const pending = !connected || audioState.status === "pending" || audioStalled
+  const pending = !connected || audioStalled
 
   return (
     <>
@@ -212,21 +207,21 @@ function RoomPageContent({
           </header>
           <nav className="flex flex-row flex-wrap gap-3">
             <NavLink
-              to={$path("/rooms/:roomId", { roomId })}
+              to={$path("/rooms/:roomId", { roomId: room.id })}
               end
               className="border-b-2 border-transparent font-medium uppercase opacity-50 transition hover:border-accent-200 hover:text-accent-200 [&.active]:border-current [&.active]:opacity-100"
             >
               Queue
             </NavLink>
             <NavLink
-              to={$path("/rooms/:roomId/history", { roomId })}
+              to={$path("/rooms/:roomId/history", { roomId: room.id })}
               className="border-b-2 border-transparent font-medium uppercase opacity-50 transition hover:border-accent-200 hover:text-accent-200 [&.active]:border-current [&.active]:opacity-100"
             >
               History
             </NavLink>
           </nav>
         </div>
-        <QueueContext.Provider value={queue}>
+        <QueueContext.Provider value={room.queue}>
           <CurrentQueueItemContext.Provider value={currentItem}>
             <Outlet />
           </CurrentQueueItemContext.Provider>
@@ -247,8 +242,20 @@ function RoomPageContent({
               step={0.01}
             />
             {pending && <Spinner />}
-            {audioState.status === "error" && (
-              <button type="button" title="Play" onClick={playAudio}>
+            {audioPlayFailed && (
+              <button
+                type="button"
+                title="Play"
+                onClick={() => {
+                  setAudioPlayFailed(false)
+                  getAudioElement()
+                    .play()
+                    .catch((error) => {
+                      console.warn("failed to play audio", error)
+                      setAudioPlayFailed(true)
+                    })
+                }}
+              >
                 <LucidePlayCircle />
               </button>
             )}

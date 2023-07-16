@@ -1,4 +1,4 @@
-import { TRPCError, initTRPC } from "@trpc/server"
+import { TRPCError, type inferRouterOutputs, initTRPC } from "@trpc/server"
 import { z } from "zod"
 import { queueSchema, roomSchema, userSchema } from "~/data/vinyl-types"
 import { searchYouTube } from "~/data/youtube.server"
@@ -112,6 +112,7 @@ export const appRouter = t.router({
 })
 
 export type AppRouter = typeof appRouter
+export type AppRouterOutput = inferRouterOutputs<AppRouter>
 
 const authResponseSchema = z.object({
   token: z.string(),
