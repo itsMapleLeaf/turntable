@@ -28,6 +28,7 @@
     "@remix-run/node": "^1.18.1",
     "@remix-run/react": "^1.18.1",
     "@tanstack/react-query": "^4.29.23",
+    "@tanstack/react-query-devtools": "^4.29.25",
     "@trpc/client": "^10.34.0",
     "@trpc/react-query": "^10.34.0",
     "@trpc/server": "^10.34.0",

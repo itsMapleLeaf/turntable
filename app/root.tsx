@@ -1,5 +1,6 @@
 import { type LinksFunction, type V2_MetaFunction } from "@remix-run/node"
 import { Links, LiveReload, Meta, Outlet, Scripts } from "@remix-run/react"
+import { ReactQueryDevtools } from "@tanstack/react-query-devtools"
 import background from "./assets/background.jpg"
 import favicon from "./assets/favicon.png"
 import { Header } from "./components/header"
@@ -55,6 +56,7 @@ function Document() {
         </div>
         <Scripts />
         <LiveReload />
+        <ReactQueryDevtools />
       </body>
     </html>
   )
