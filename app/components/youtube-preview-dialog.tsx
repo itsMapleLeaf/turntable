@@ -42,8 +42,8 @@ export function YouTubePreviewDialog() {
   return (
     <Dialog.Root open={context.open} onOpenChange={context.setOpen}>
       <Dialog.Portal>
-        <Dialog.Overlay className="fixed inset-0 flex flex-col bg-black bg-opacity-50 p-4 backdrop-blur-lg">
-          <Dialog.Content className="panel m-auto flex w-full flex-col border">
+        <Dialog.Overlay className="fixed inset-0 flex flex-col overflow-y-auto bg-black bg-opacity-50 p-4 backdrop-blur-lg">
+          <Dialog.Content className="panel m-auto flex w-full max-w-[calc(100vh*(16/9)-16rem)] flex-col border">
             <iframe
               title="YouTube Preview"
               className="aspect-video w-full border-none"
