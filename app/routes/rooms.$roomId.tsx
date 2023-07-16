@@ -153,7 +153,7 @@ function RoomPageContent({ room }: { room: AppRouterOutput["rooms"]["get"] }) {
 
   useEffect(() => {
     const audio = getAudioElement()
-    if (connected && !muted && !youTubePreview.open) {
+    if (connected && !muted) {
       let cancelled = false
 
       audio.src = `${room.streamUrl}&t=${Date.now()}`
@@ -177,11 +177,11 @@ function RoomPageContent({ room }: { room: AppRouterOutput["rooms"]["get"] }) {
       audio.pause()
       setAudioPlayFailed(false)
     }
-  }, [connected, muted, room.streamUrl, youTubePreview.open])
+  }, [connected, muted, room.streamUrl])
 
   useEffect(() => {
-    getAudioElement().volume = volume ** 2
-  }, [volume])
+    getAudioElement().volume = youTubePreview.open ? 0 : volume ** 2
+  }, [volume, youTubePreview.open])
 
   useEffect(() => {
     return () => getAudioElement().pause()
