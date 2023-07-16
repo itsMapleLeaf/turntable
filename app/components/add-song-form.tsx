@@ -127,6 +127,7 @@ function YouTubeSearchSubmitter({
       <div className="flex gap-2 p-3">
         <div className="relative flex flex-1">
           <input
+            type="search"
             name="url"
             placeholder="Search YouTube"
             className="input flex-1"
@@ -142,13 +143,11 @@ function YouTubeSearchSubmitter({
               }
             }}
           />
-          <div
-            className={`absolute right-3 self-center transition-opacity ${
+          <Spinner
+            className={`pointer-events-none absolute right-3 self-center transition-opacity ${
               searchQuery.isFetching ? "opacity-100" : "opacity-0"
             }`}
-          >
-            <Spinner />
-          </div>
+          />
         </div>
         {sourceMenu}
       </div>
