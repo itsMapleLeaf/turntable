@@ -84,6 +84,11 @@ function RoomPageContent({ room }: { room: AppRouterOutput["rooms"]["get"] }) {
     }
   }, [currentItem?.track])
 
+  const handleConnected = useEffectEvent(() => {
+    setConnected(true)
+    void context.rooms.get.refetch({ id: room.id })
+  })
+
   const handleLiveEvent = useEffectEvent((event: VinylEvent) => {
     if (event.type !== "player-time") {
       console.debug("event received", event)
@@ -142,14 +147,14 @@ function RoomPageContent({ room }: { room: AppRouterOutput["rooms"]["get"] }) {
   useEffect(() => {
     const source = new ReconnectingEventSource(room.eventsUrl)
 
-    source.onOpen = () => setConnected(true)
+    source.onOpen = handleConnected
     source.onError = () => setConnected(false)
-    source.onReconnected = () => setConnected(true)
+    source.onReconnected = handleConnected
     source.onMessage = ({ data }) =>
       handleLiveEvent(vinylEventSchema.parse(JSON.parse(String(data))))
 
     return () => source.close()
-  }, [room.eventsUrl, handleLiveEvent])
+  }, [room.eventsUrl, handleLiveEvent, handleConnected])
 
   useEffect(() => {
     const audio = getAudioElement()
