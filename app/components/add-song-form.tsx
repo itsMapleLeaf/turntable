@@ -1,23 +1,29 @@
 import { LucideLink, LucidePlay, LucideYoutube } from "lucide-react"
-import { useState, type ReactNode } from "react"
+import { useMemo, useState, type ReactNode } from "react"
 import { type Video } from "scraper-edge"
+import { z } from "zod"
 import { Button } from "~/components/button"
 import { Menu, MenuButton, MenuItemButton, MenuPanel } from "~/components/menu"
 import { Spinner } from "~/components/spinner"
 import { mod } from "~/helpers/math"
+import { useLocalStorageState } from "~/helpers/use-local-storage-state"
 import { trpc } from "~/trpc/client"
 import { useYouTubePreview } from "./youtube-preview-dialog"
 
 const submitSources = [
-  { name: "YouTube", icon: LucideYoutube },
-  { name: "Direct URL", icon: LucideLink },
+  { id: "youtube", name: "YouTube", icon: LucideYoutube },
+  { id: "direct", name: "Direct URL", icon: LucideLink },
 ] as const
-type SubmitSource = (typeof submitSources)[number]
 
 export function AddSongForm({ roomId }: { roomId: string }) {
-  const [submitSource, setSubmitSource] = useState<SubmitSource>(
-    submitSources[0],
+  const [submitSourceId, setSubmitSourceId] = useLocalStorageState(
+    "add-song-form-source",
+    "youtube",
+    useMemo(() => z.string(), []),
   )
+
+  const submitSource =
+    submitSources.find((s) => s.id === submitSourceId) ?? submitSources[0]
 
   const sourceMenu = (
     <Menu>
@@ -33,14 +39,14 @@ export function AddSongForm({ roomId }: { roomId: string }) {
             key={source.name}
             label={source.name}
             icon={source.icon}
-            onClick={() => setSubmitSource(source)}
+            onClick={() => setSubmitSourceId(source.id)}
           />
         ))}
       </MenuPanel>
     </Menu>
   )
 
-  return submitSource.name === "YouTube" ? (
+  return submitSource.id === "youtube" ? (
     <YouTubeSearchSubmitter roomId={roomId} sourceMenu={sourceMenu} />
   ) : (
     <DirectUrlSubmitter roomId={roomId} sourceMenu={sourceMenu} />
